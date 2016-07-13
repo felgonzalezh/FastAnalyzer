@@ -1,0 +1,1000 @@
+  107  tail -f test.log 
+  108  cd setup/etc/addresstables/
+  109  scp connections_ch_TIF.xml connections_ch.xml 
+  110  cd ..
+  111  xdaq.exe -p 5050 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  112  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml 
+  113  git branch
+  114  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml 
+  115  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  116  tail -f test.log 
+  117  jobs
+  118  kill %1
+  119  kill %2
+  120  xdaq.exe -p 5050 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  121  jobs
+  122  kill %1
+  123  fg
+  124  jobs
+  125  fg
+  126  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml
+  127  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  128  tail -f test.log 
+  129  jobs
+  130  kill %1
+  131  scp /tmp/gemsupervisor_tif.xml .
+  132  diff gemsupervisor_tif.xml gemsupervisor/xml/gemsupervisor_tif.xml
+  133  fg
+  134  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml
+  135  cd setup/etc/addresstables/
+  136  ls
+  137  diff connections_ch.xml connections_ch_TIF.xml 
+  138  diff connections_ch.xml connections_ch_904.xml 
+  139  ls
+  140  cd ..
+  141  cd cmsgemos/
+  142  emacs -nw test.log 
+  143  echo $BUILD_HOME 
+  144  echo $GEM_OS_PROJECT 
+  145  fg
+  146  emacs -nw test.log 
+  147  cd $BUILD_HOME 
+  148  cd $GEM_OS_PROJECT 
+  149  ls
+  150  jobs
+  151  ps aux|grep xdaq
+  152  emacs -nw gemsupervisor/src/common/tbutils/LatencyScan.cc 
+  153  make all -j8
+  154  ps aux|grep xdaq
+  155  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  156  tail -f test.log 
+  157  cd ${XDAQ_DOCUMENT_ROOT}/gemdaq/
+  158  ls
+  159  pwd
+  160  mkdir -p  ${XDAQ_DOCUMENT_ROOT}/gemdaq/gem{base,utils,hardware,supervisor,readout,HwMonitor}
+  161  ls
+  162  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gembase/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gembase/html
+  163  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemutils/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemutils/html
+  164  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemhardware/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemhardware/html
+  165  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemsupervisor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemsupervisor/html
+  166  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemreadout/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemreadout/html
+  167  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemHwMonitor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemHwMonitor/html
+  168  cd ..
+  169  cd $BUILD_HOME 
+  170  cd cmsgemos/
+  171  make clean && make all -j8
+  172  AMC13Tool2.exe -c 192.168.2.104/c
+  173  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  174  tail -f test.log 
+  175  jobs
+  176  kill %1
+  177  kil %3
+  178  kill %3
+  179  kill %2
+  180  jobs
+  181  AMC13Tool2.exe -c 192.168.2.104/c
+  182  cd $BUILD_HOME/cmsgemos
+  183  fg
+  184  AMC13Tool2.exe -c 192.168.2.104/c
+  185  make all -j8
+  186  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  187  emacs -mw test.log 
+  188  emacs -nw test.log 
+  189  jobs
+  190  kill %1
+  191  jobs
+  192  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml
+  193  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  194  emacs -nw test.log 
+  195  cd $BUILD_HOME 
+  196  cd $GEM_OS_PROJECT 
+  197  ls
+  198  emacs -nw test.log 
+  199  exit
+  200  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE
+  201  cd $BUILD_HOME 
+  202  cd cmsgemos/
+  203  source setup/paths.sh 
+  204  make clean && make all -j8 
+  205  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  206  jobs
+  207  jons
+  208  emacs -nw test.log 
+  209  ps aux|grep xdaq
+  210  kill -9 18362
+  211  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  212  tail -f test.log 
+  213  AMC13Tool2.exe -c 192.168.2.104/c
+  214  ls
+  215  echo $BUILD_HOME 
+  216  cd $BUILD_HOME 
+  217  ls
+  218  mkdir xml_files
+  219  cd xml_files/
+  220  ls
+  221  cd $BUILD_HOME 
+  222  ls
+  223  cd cmsgemos/
+  224  jobs
+  225  kill %1
+  226  AMC13Tool2.exe -c 192.168.2.104/c
+  227  ls
+  228  cd ..
+  229  ls
+  230  cd $BUILD_HOME 
+  231  AMC13Tool2.exe -c 192.168.2.104/c
+  232  echo $XDAQ_ROOT
+  233  echo $XDAQ_DOCUMENT_ROOT 
+  234  echo $uHALROOT 
+  235  ls
+  236  cd cmsgemos/
+  237  ls
+  238  cd $BUILD_HOME 
+  239  ls
+  240  cd ${XDAQ_DOCUMENT_ROOT}/gemdaq
+  241  cd ..
+  242  ls
+  243  AMC13Tool2.exe -c 192.168.2.104/c
+  244  cd $BUILD_HOME 
+  245  AMC13Tool2.exe -c 192.168.2.104/c
+  246  cd cmsgemos/
+  247  ls
+  248  cd gemhardware/
+  249  ls
+  250  cd src/
+  251  ls
+  252  cd common/
+  253  cd amc13/
+  254  ls
+  255  cd ..
+  256  cd..
+  257  cd ..
+  258  cd setup/etc/addresstables/
+  259  ls
+  260  AMC13Tool2.exe -c 192.168.2.104/c
+  261  cd ../../..
+  262  cd ..
+  263  ls
+  264  cd xml_files/
+  265  ls
+  266  mv ../connections_ch_TIF.xml .
+  267  mv ../cmsgemos/gemsupervisor_tif.xml .
+  268  ls
+  269  cd .
+  270  cd ..
+  271  ls
+  272  cd cmsgemos/
+  273  ls
+  274  cd ..
+  275  mv ../cmsgemos/connections_ch_TIF.xml .
+  276  mv ../cmsgemos/setup/etc/addresstables/connections_ch_TIF.xml .
+  277  mv ../cmsgemos/setup/etc/addresstables/connections_ch_904.xml .
+  278  cd ..
+  279  cd cmsgemos/
+  280  git status
+  281  git rm setup/etc/addresstables/connections_ch_904.xml
+  282  git checkout -- setup/etc/addresstables/connections_ch.xml
+  283  git checkout -- setup/etc/addresstables/connections_ch_904.xml
+  284  git add setup/etc/addresstables/connections_ch_904.xml
+  285  git rm setup/etc/addresstables/connections_ch_904.xml
+  286  scp ../xml_files/connections_ch_TIF.xml setup/etc/addresstables/
+  287  scp ../xml_files/connections_ch_904.xml setup/etc/addresstables/
+  288  git status
+  289  cd setup/etc/addresstables/
+  290  ls
+  291  git status
+  292  git rm connections_ch_904.xml
+  293  git status
+  294  git add connections_ch_904.xml
+  295  cd ..
+  296  git status
+  297  git rm setup/etc/addresstables/connections_ch_TIF.xml 
+  298  git rm setup/etc/addresstables/connections_ch_904.xml 
+  299  git commit -m "connection files removed"
+  300  git push
+  301  git remote -v
+  302  git fetch upstream
+  303  git merge upstream/release-v2
+  304  make all -j8
+  305  ps aux|grep xdaq
+  306  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml
+  307  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  308  emacs -nw test.log 
+  309  fg
+  310  jobs
+  311  fg
+  312  emacs -nw test.log 
+  313  ll
+  314  cd config/
+  315  ls
+  316  source gemostag 
+  317  emacs -nw gemostag 
+  318  cd ..
+  319  ls
+  320  ll
+  321  emacs -nw cpplint.py 
+  322  emacs -nw test.log 
+  323  cd
+  324  emacs -nw .bashrc
+  325  source .bashrc
+  326  exit
+  327  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE
+  328  cd $BUILD_HOME 
+  329  cd cmsgemos/
+  330  source setup/paths.sh 
+  331  make clean && make all -j8
+  332  ll
+  333  scp ../xml_files/connections_ch_TIF.xml setup/etc/addresstables/connections_ch.xml 
+  334  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  335  tail -f test.log 
+  336  ps aux|grep xdaq
+  337  kill -9 8197
+  338  jobs
+  339  fg
+  340  cd 
+  341  emacs -nw gemsetup.sh
+  342  fg
+  343  emacs -nw .bashrc
+  344  exit
+  345  ps aux|grep xdaq
+  346  exit
+  347  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE
+  348  emacs -nw gemsetup.sh
+  349  source gemsetup.sh
+  350  cd $BUILD_HOME 
+  351  cd cmsgemos/
+  352  source setup/paths.sh 
+  353  make clean && make all -j8
+  354  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  355  emacs -nw test.log 
+  356  cd $BUILD_HOME 
+  357  cd ${XDAQ_DOCUMENT_ROOT}/gemdaq
+  358  ls
+  359  rm -rf gem*
+  360  ls
+  361  cd ..
+  362  cd 
+  363  cd $BUILD_HOME 
+  364  cd ..
+  365  ls
+  366  cd GEM-DAQ
+  367  ls
+  368  mkdir cms-gem-daq-project
+  369  ls
+  370  cd ..
+  371  ls
+  372  cd GEM-DAQ-CODE/
+  373  mkdir cms-gem-daq-project
+  374  cd cms-gem-daq-project/
+  375  ls
+  376  git clone git@github.com:cms-gem-daq-project/cmsgemos.git
+  377  ls
+  378  cd cmsgemos/
+  379  ls
+  380  git branch
+  381  exit
+  382  cd public/
+  383  ls
+  384  cd GEM-DAQ-CODE/cms-gem-daq-project/
+  385  ls
+  386  pwd
+  387  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project
+  388  echo $XDAQ_ROOT
+  389  echo $XDAQ_DOCUMENT_ROOT
+  390  echo $uHALROOT
+  391  cd $BUILD_HOME/cmsgemos
+  392  source setup/paths.sh
+  393  scp ../../xml_files/connections_ch_TIF.xml setup/etc/addresstables/connections_ch.xml 
+  394  scp ../../xml_files/gemsupervisor_tif.xml gemsupervisor/xml/ 
+  395  make clean && make all -j6
+  396  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  397  emacs -nw test.log 
+  398  jobs
+  399  ll
+  400  jobs
+  401  ps aux|grep xdaq
+  402  kill -9 19607
+  403  kill -9 18607
+  404  ps aux|grep xdaq
+  405  jobs
+  406  ps aux|grep xdaq
+  407  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  408  tail -f test.log 
+  409  emacs -nw test.log 
+  410  killall xdaq.exe
+  411  diff ../../xml_files/connections_ch_TIF.xml setup/etc/addresstables/connections_ch.xml 
+  412  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml 
+  413  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  414  killall xdaq.exe
+  415  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  416  tail -f test.log 
+  417  fg
+  418  killall xdaq.exe
+  419  jobs
+  420  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  421  tail -f test.log 
+  422  fg
+  423  jobs
+  424  ps aux|grep xdaq
+  425  mkdir -p  ${XDAQ_DOCUMENT_ROOT}/gemdaq/gem{base,utils,hardware,supervisor,readout,HwMonitor}
+  426  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gembase/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gembase/html
+  427  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemutils/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemutils/html
+  428  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemhardware/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemhardware/html
+  429  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemsupervisor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemsupervisor/html
+  430  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemreadout/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemreadout/html
+  431  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemHwMonitor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemHwMonitor/html
+  432  make all -j8
+  433  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  434  tail -f test.log 
+  435  fg
+  436  jobs
+  437  ps aux|grep xdaq
+  438  fg
+  439  cd $BUILD_HOME/cmsgemos
+  440  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  441  tail -f test.log 
+  442  xdaq.exe -p 5050 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  443  emacs -nw test.log 
+  444  echo $LD_LIBRARY_PATH
+  445  cd
+  446  emacs -nw .bashrc
+  447  cd $BUILD_HOME 
+  448  cd cmsgemos/
+  449  emacs -nw setup/paths.sh 
+  450  source setup/paths.sh 
+  451  echo $LD_LIBRARY_PATH 
+  452  clear
+  453  echo $LD_LIBRARY_PATH 
+  454  cd
+  455  emacs -nw .bashrc
+  456  source .bashrc
+  457  cd $BUILD_HOME 
+  458  pwd
+  459  cd $GEM_OS_PROJECT 
+  460  echo $LD_LIBRARY_PATH 
+  461  exit
+  462  emacs -nw .bashrc
+  463  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project
+  464  cd $BUILD_HOME 
+  465  cd cmsgemos/
+  466  source setup/paths.sh 
+  467  pwd
+  468  diff setup/paths.sh /tmp/paths.sh 
+  469  AMC13Tool2.exe -c 192.168.2.104/c
+  470  diff setup/etc/addresstables/connections_ch.xml /tmp/connections_ch_TIF.xml 
+  471  AMC13Tool2.exe -c 192.168.2.104/c
+  472  make clean && make all -j8
+  473  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml
+  474  ps aux|grep xdaq
+  475  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  476  tail -f test.log 
+  477  emacs -nw ~/.bashrc
+  478  exit
+  479  echo $LD_LIBRARY_PATH 
+  480  AMC13Tool2.exe -c 192.168.2.104/c
+  481  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project/cmsgemos/../
+  482  cd $BUILD_HOME 
+  483  make all -j8
+  484  cd cmsgemos/
+  485  source setup/paths.sh 
+  486  make all -j8
+  487  killall xdaq.exe
+  488  xdaq.exe -p 4445 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  489  emacs -nw test.log 
+  490  AMC13Tool2.exe -c 192.168.2.104/c
+  491  exit
+  492  echo $LD_LIBRARY_PATH 
+  493  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project
+  494  cd $BUILD_HOME
+  495  echo $LD_LIBRARY_PATH 
+  496  cd cmsgemos/
+  497  source setup/paths.sh 
+  498  echi $LD_LIBRARY_PATH 
+  499  echo $LD_LIBRARY_PATH 
+  500  echo LD_LIBRARY_PATH $LD_LIBRARY_PATH 
+  501  make clean && make all -j8
+  502  source setup/paths.sh 
+  503  make clean && make all -j8
+  504  echo $BUILD_HOME 
+  505  exit
+  506  pwd
+  507  exit
+  508  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project
+  509  cd $BUILD_HOME
+  510  cd cmsgemos/
+  511  source setup/paths.sh 
+  512  make clean && make all -j8
+  513  echo $XDAQ_DOCUMENT_ROOT 
+  514  cd $XDAQ_DOCUMENT_ROOT
+  515  cd gemdaq/
+  516  ls
+  517  rm -fr gem*
+  518  mkdir -p  ${XDAQ_DOCUMENT_ROOT}/gemdaq/gem{base,utils,hardware,supervisor,readout,HwMonitor}
+  519  ls
+  520  cd ..
+  521  ls
+  522  cd ${XDAQ_DOCUMENT_ROOT}/gemdaq
+  523  ld
+  524  ls
+  525  ll
+  526  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gembase/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gembase/html
+  527  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemutils/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemutils/html
+  528  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemhardware/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemhardware/html
+  529  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemsupervisor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemsupervisor/html
+  530  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemreadout/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemreadout/html
+  531  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemHwMonitor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemHwMonitor/html
+  532  make all -jj8
+  533  cd $BUILD_HOME
+  534  cd cmsgemos/
+  535  make clean && make all -j8
+  536  scp ../../xml_files/connections_ch_904.xml setup/etc/addresstables/connections_ch.xml 
+  537  make all -j8
+  538  make clean && make all -j8
+  539  surce setup/paths.sh 
+  540  source setup/paths.sh 
+  541  make clean && make all -j8
+  542  ll
+  543  cd ..
+  544  cd GEM-DAQ
+  545  cd ..
+  546  cd GEM-DAQ-CODE/cms-gem-daq-project/
+  547  ls
+  548  cd ..
+  549  mkdir jose_repo
+  550  cd jose_repo/
+  551  git clone git@github.com:jotadram6/cmsgemos.git
+  552  ls
+  553  cd cmsgemos/
+  554  ls
+  555  cd ..
+  556  git remote -v
+  557  git remote add jose git@github.com:jotadram6/cmsgemos.git
+  558  git fetch jose
+  559  git merge jose/LEMO_TIF
+  560  git status
+  561  git branch -r
+  562  git branch
+  563  pwd
+  564  cd cmsgemos/
+  565  git status
+  566  git merge jose/LEMO_TIF
+  567  git branch
+  568  git checkout -b LEMO_TIF_JOSE
+  569  git fetch jose
+  570  git remote -v
+  571  git remote add jose git@github.com:jotadram6/cmsgemos.git
+  572  git fetch jose
+  573  git merge jose/LEMO_TIF 
+  574  git status
+  575  git fetch jose
+  576  exit
+  577  ls
+  578  cd public/GEM-DAQ-CODE/
+  579  ls
+  580  cd jose_repo/
+  581  ls
+  582  cd cmsgemos/
+  583  ls
+  584  git status
+  585  git fetch jose
+  586  git merge jose/LEMO_TIF 
+  587  scp ../../xml_files/connections_ch_TIF.xml setup/etc/addresstables/connections_ch.xml 
+  588  pwd
+  589  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/jose_repo/
+  590  cd $BUILD_HOME
+  591  cd cmsgemos/
+  592  source setup/paths.sh 
+  593  make clean && make all -j8
+  594  xdaq.exe -p 4444 -c gemsupervisor/xml/testbeamutils.xml &> test.log &
+  595  emacs -nw test.log 
+  596  exit
+  597  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/jose_repo/
+  598  cd $BUILD_HOME 
+  599  cd cmsgemos/
+  600  source setup/paths.sh 
+  601  make clean && make all -j8
+  602  cd /data/xdaq/cfgonzal/gemdaq/
+  603  ls
+  604  rm -rf gem*
+  605  mkdir -p  ${XDAQ_DOCUMENT_ROOT}/gemdaq/gem{base,utils,hardware,supervisor,readout,HwMonitor}
+  606  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gembase/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gembase/html
+  607  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemutils/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemutils/html
+  608  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemhardware/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemhardware/html
+  609  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemsupervisor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemsupervisor/html
+  610  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemreadout/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemreadout/html
+  611  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemHwMonitor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemHwMonitor/html
+  612  cd $BUILD_HOME 
+  613  cd cmsgemos/
+  614  ls
+  615  ll
+  616  emacs -nw gemsupervisor/xml/gemsupervisor.xml
+  617  scp /tmp/gemsupervisor_tif.xml gemsupervisor/xm
+  618  emacs -nw gemsupervisor/xml/gemsupervisor_tif.xml 
+  619  xdaq.exe -p 5050 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  620  emacs -nw test.log 
+  621  jobs
+  622  tail -f test.log 
+  623  emacs -nw test.log 
+  624  tail -f test.log 
+  625  killall xdaq.exe
+  626  cd ..
+  627  ls
+  628  cd ..
+  629  ls
+  630  cd cms-gem-daq-project/
+  631  rm -rf cmsgemos/
+  632  git clone git@github.com:cms-gem-daq-project/cmsgemos.git
+  633  cd cmsgemos/
+  634  pwd
+  635  git status
+  636  git remote -v
+  637  git remote add upstream git@github.com:cms-gem-daq-project/cmsgemos.git
+  638  git fetch upstream
+  639  git checkout -b release-v2-lemo
+  640  git branch
+  641  git checkout release-v2
+  642  git fetch release-v2
+  643  git fetch upstream
+  644  git branch -r
+  645  git merge upstream/release-v2-amc13-lemo
+  646  cd ..
+  647  pwd
+  648  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project/
+  649  cd $BUILD_HOME 
+  650  cd cmsgemos/
+  651  source setup/paths.sh 
+  652  make clean && make all -j8
+  653  ll
+  654  scp ../../xml_files/connections_ch_TIF.xml setup/etc/addresstables/connections_ch.xml 
+  655  scp ../../xml_files/gemsupervisor_tif.xml gemsupervisor/xml/
+  656  xdaq.exe -p 5050 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  657  tail -f test.log 
+  658  killall xdaq.exe
+  659  ps aux|grep xdaq
+  660  killall xdaq.exe
+  661  ps aux|grep xdaq
+  662  cd $XDAQ_DOCUMENT_ROOT 
+  663  cd gemdaq/
+  664  rm -rf gem*
+  665  mkdir -p  ${XDAQ_DOCUMENT_ROOT}/gemdaq/gem{base,utils,hardware,supervisor,readout,HwMonitor}
+  666  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gembase/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gembase/html
+  667  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemutils/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemutils/html
+  668  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemhardware/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemhardware/html
+  669  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemsupervisor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemsupervisor/html
+  670  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemreadout/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemreadout/html
+  671  ln -s ${BUILD_HOME}/${GEM_OS_PROJECT}/gemHwMonitor/html ${XDAQ_DOCUMENT_ROOT}/gemdaq/gemHwMonitor/html
+  672  cd $BUILD_HOME 
+  673  ls
+  674  cd cmsgemos/
+  675  ls
+  676  make clean && make all -j8
+  677  pwd
+  678  echo $BUILD_HOME 
+  679  exit
+  680  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project/
+  681  cd $BUILD_HOME
+  682  cd cmsgemos/
+  683  source setup/paths.sh 
+  684  git remote -v
+  685  git fetch upstream 
+  686  git branch
+  687  git merge upstream/release-v2
+  688  source setup/paths.sh 
+  689  make all -j8
+  690  make clean && make all -j8
+  691  cd ..
+  692  cd ../jose_repo/cmsgemos/
+  693  ls
+  694  cd gemhardware/
+  695  ls
+  696  cd src/
+  697  ls
+  698  cd common/
+  699  cd amc13/
+  700  ls
+  701  emacs -nw AMC13Manager.cc 
+  702  exit
+  703  AMC13Tool2.exe -c 192.168.2.104/c
+  704  ps aux|grep xdaq
+  705  killall xdaq.exe
+  706  ps aux|grep xdaq
+  707  ps aux|grep sturdi
+  708  ps aux|grep sturdy
+  709  ps aux|grep xdaq
+  710  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/jose_repo/
+  711  cd $BUILD_HOME 
+  712  ls
+  713  cd cmsgemos/
+  714  ls
+  715  source setup/paths.sh 
+  716  git remote -v
+  717  git remote add upstream git@github.com:cms-gem-daq-project/cmsgemos.git
+  718  git fetch upstream
+  719  git merge upstream/release-v2
+  720  git status
+  721  make clean && make all -j8
+  722  xdaq.exe -p 5050 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  723  tail -f test.log 
+  724  ps aux|grep xdaq
+  725  tail -f test.log 
+  726  AMC13Tool2.exe -c 192.168.2.104/c
+  727  jobs
+  728  kill %1
+  729  cd ..
+  730  cd cms-gem-daq-project/
+  731  pwd
+  732  exit
+  733  AMC13Tool2.exe -c 192.168.2.104/c
+  734  st
+  735  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project/
+  736  cd $BUILD_HOME 
+  737  cd cmsgemos/
+  738  git remote -v
+  739  git fetch upstream
+  740  git merge upstream/release-v2
+  741  source setup/paths.sh 
+  742  make clean && make all -j8
+  743  xdaq.exe -p 5050 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  744  tail -f test.log 
+  745  ls
+  746  export BUILD_HOME=/afs/cern.ch/user/c/cfgonzal/public/GEM-DAQ-CODE/cms-gem-daq-project/
+  747  cd $BUILD_HOME 
+  748  cd
+  749  emacs -nw .bashrc
+  750  fg
+  751  cd $BUILD_HOME 
+  752  cd cmsgemos/
+  753  fg
+  754  source setup/paths.sh 
+  755  exit
+  756  fg
+  757  emacs -nw .bashrc
+  758  fg
+  759  emacs -nw ../../j/jruizvar/.bashrc
+  760  emacs -nw .bashrc
+  761  source .bashrc
+  762  fg
+  763  source .bashrc
+  764  fg
+  765  source .bashrc
+  766  fg
+  767  source .bashrc
+  768  jobs
+  769  fg
+  770  source .bashrc
+  771  fg
+  772  source .bashrc
+  773  gem_setup
+  774  jobs
+  775  cd $BUI
+  776  kill %3
+  777  kill %1
+  778  fg
+  779  gemsetup
+  780  source .bashrc
+  781  gemsetup
+  782  echo $BUILD_HOME 
+  783  fg
+  784  echo $BUILD_HOME 
+  785  jobs
+  786  fg
+  787  source .bashrc
+  788  gemsetup
+  789  fg
+  790  source .bashrc
+  791  gemsetup
+  792  fg
+  793  gemsetup
+  794  source .bashrc
+  795  gemsetup
+  796  fg
+  797  source .bashrc
+  798  gemsetup
+  799  fg
+  800  source .bashrc
+  801  gemsetup
+  802  exit
+  803  emacs -nw ../../j/jruizalv/.bashrc
+  804  exit
+  805  fg
+  806  gemsetup 
+  807  emacs -nw .bashrc
+  808  gemsetup 
+  809  source .bashrc
+  810  gemsetup 
+  811  fg
+  812  source .bashrc
+  813  gemsetup 
+  814  cd $BUILD_HOME 
+  815  cd cmsgemos/
+  816  source setup/paths.sh 
+  817  make clean && make all -j8
+  818  cd
+  819  emacs -nw .bashrc
+  820  fg
+  821  source .bashrc
+  822  gemsetup 
+  823  emacs -nw gemsupervisor/xml/testbeamutils.xml 
+  824  fg
+  825  scp gemsupervisor/xml/testbeamutils.xml gemsupervisor/xml/testbeamutils_tif.xml
+  826  fg
+  827  ll
+  828  ll gemsupervisor/xml/
+  829  ls
+  830  rm gemsupervisor/xml/#testbeamutils.xml# 
+  831  emacs -nw gemsupervisor/xml/testbeamutils_tif.xml 
+  832  fg
+  833  AMC13Tool2.exe -c 192.168.2.104/c
+  834  fg
+  835  xdaq.exe -p 5054 -c gemsupervisor/xml/testbeamutils_tif.xml &> test.log &
+  836  tail -f test.log 
+  837  jobs
+  838  killall xdaq.exe
+  839  kill %1
+  840  kill %2
+  841  xdaq.exe -p 5050 -c gemsupervisor/xml/gemsupervisor_tif.xml &> test.log &
+  842  tail -f test.log 
+  843  killall xdaq.exe
+  844  fg
+  845  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif.xml &> test.log &
+  846  tail -f test.log 
+  847  killall xdaq.exe
+  848  jobs
+  849  ps aux|grep xdaq
+  850  fg
+  851  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif.xml &> test.log &
+  852  tail -f test.log 
+  853  killall xdaq.exe
+  854  fg
+  855  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif.xml &> test.log &
+  856  tail -f test.log 
+  857  killall xdaq.exe
+  858  fg
+  859  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif.xml &> test.log &
+  860  tail -f test.log 
+  861  fg
+  862  scp gemsupervisor/xml/gemsupervisor_tif.xml gemsupervisor/xml/testbeamutils_tif_2.xml
+  863  fg
+  864  killall xdaq.exe
+  865  fg
+  866  emacs -nw gemsupervisor/xml/testbeamutils_tif.xml gemsupervisor/xml/testbeamutils_tif_2.xml
+  867  fg
+  868  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif2.xml &> test.log &
+  869  killall xdaq.exe
+  870  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif2.xml &> test.log &
+  871  fg
+  872  killall xdaq.exe
+  873  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  874  tail -f test.log 
+  875  killall xdaq.exe
+  876  fg
+  877  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  878  tail -f test.log 
+  879  emacs -nw test.log 
+  880  fg
+  881  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  882  tail -f test.log 
+  883  killall xdaq.exe
+  884  fg
+  885  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  886  tail -f test.log 
+  887  fg
+  888  emacs -nw test.log 
+  889  fg
+  890  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  891  tail -f test.log 
+  892  emacs -nw test.log 
+  893  fg
+  894  emacs -nw gemsupervisor/Makefile 
+  895  fg
+  896  emacs -nw test.log 
+  897  fg
+  898  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  899  tail -f test.log 
+  900  killall xdaq.exe
+  901  fg
+  902  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  903  fg
+  904  emacs -nw test.log 
+  905  fg
+  906  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  907  emacs -nw test.log 
+  908  fg
+  909  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  910  tail -f test.log 
+  911  fg
+  912  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  913  tail -f test.log 
+  914  fg
+  915  emacs -nw test.log 
+  916  fg
+  917  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  918  tail -f test.log 
+  919  killall xdaq.exe
+  920  fg
+  921  python setup/scripts/python/glib_board_info_uhal.py 
+  922  emacs -nw setup/scripts/python/glib_board_info_uhal.py 
+  923  python setup/scripts/python/glib_board_info_uhal.py -s1
+  924  fg
+  925  python setup/scripts/python/glib_board_info_uhal.py -s1
+  926  python setup/scripts/python/glib_board_info_uhal.py -s2
+  927  python setup/scripts/python/glib_board_info_uhal.py -s3
+  928  python setup/scripts/python/glib_board_info_uhal.py -s4
+  929  python setup/scripts/python/glib_board_info_uhal.py -s5
+  930  python setup/scripts/python/glib_board_info_uhal.py -s6
+  931  python setup/scripts/python/glib_board_info_uhal.py -s7
+  932  python setup/scripts/python/glib_board_info_uhal.py -s8
+  933  python setup/scripts/python/glib_board_info_uhal.py -s9
+  934  python setup/scripts/python/glib_board_info_uhal.py -s10
+  935  python setup/scripts/python/glib_board_info_uhal.py -s11
+  936  python setup/scripts/python/glib_board_info_uhal.py -s12
+  937  python setup/scripts/python/glib_board_info_uhal.py -s0
+  938  fg
+  939  python setup/scripts/python/glib_board_info_uhal.py -s0
+  940  df
+  941  fg
+  942  python setup/scripts/python/glib_board_info_uhal.py -s0
+  943  python setup/scripts/python/glib_board_info_uhal.py -s9
+  944  python setup/scripts/python/glib_board_info_uhal.py -s1
+  945  python setup/scripts/python/glib_board_info_uhal.py -s2
+  946  python setup/scripts/python/glib_board_info_uhal.py -s3
+  947  python setup/scripts/python/glib_board_info_uhal.py -s4
+  948  python setup/scripts/python/glib_board_info_uhal.py -s5
+  949  python setup/scripts/python/glib_board_info_uhal.py -s6
+  950  python setup/scripts/python/glib_board_info_uhal.py -s7
+  951  python setup/scripts/python/glib_board_info_uhal.py -s8
+  952  fg
+  953  python setup/scripts/python/glib_board_info_uhal.py -s9
+  954  fg
+  955  python setup/scripts/python/glib_board_info_uhal.py -s13
+  956  python setup/scripts/python/glib_board_info_uhal.py -s7
+  957  python setup/scripts/python/glib_board_info_uhal.py -s6
+  958  fg
+  959  python setup/scripts/python/glib_board_info_uhal.py -s6
+  960  python setup/scripts/python/glib_board_info_uhal.py -s9
+  961  fg
+  962  python setup/scripts/python/glib_board_info_uhal.py -s9
+  963  python setup/scripts/python/glib_board_info_uhal.py -s19
+  964  python setup/scripts/python/glib_board_info_uhal.py -s0
+  965  python setup/scripts/python/glib_board_info_uhal.py -s79
+  966  fg
+  967  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  968  emacs -nw test.log 
+  969  fg
+  970  emacs -nw setup/scripts/python/glib_board_info_uhal.py 
+  971  python setup/scripts/python/glib_board_info_uhal.py -s9
+  972  fg
+  973  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  974  tail -f test.log 
+  975  emacs -nw test.log 
+  976  fg
+  977  xdaq.exe -p 5044 -c gemsupervisor/xml/testbeamutils_tif_2.xml &> test.log &
+  978  tail -f test.log 
+  979  killall xdaq.exe
+  980  fg
+  981  cd gemsupervisor/xml/testbeamutils_tif_2.xml
+  982  cd gemsupervisor/xml/
+  983  scp testbeamutils_tif_2.xml testbeamutils_tif.xml
+  984  mv testbeamutils_tif_2.xml
+  985  rm testbeamutils_tif_2.xml
+  986  fg
+  987  cd ..
+  988  ls
+  989  cd. .
+  990  ls
+  991  cd ..
+  992  ls
+  993  emacs -nw gemsupervisor/src/common/tbutils/LatencyScan.cc 
+  994  ls
+  995  cd $Zprime
+  996  ls
+  997  ll
+  998  cd macro_FR/
+  999  ls
+ 1000  cd Efficiencies/
+ 1001  ls
+ 1002  emacs -nw MuTau_Plots_EffpT_Effeta_Effpu.cc
+ 1003  cd ..
+ 1004  ls
+ 1005  cd ..
+ 1006  ls
+ 1007  cd Generation/
+ 1008  ls
+ 1009  cd ..
+ 1010  cd. .
+ 1011  cd ..
+ 1012  ls
+ 1013  cd ..
+ 1014  ls
+ 1015  cd scratch/
+ 1016  ls
+ 1017  cd ZprimeAnalysis/
+ 1018  ls
+ 1019  ll
+ 1020  cd Efficiency/
+ 1021  ls
+ 1022  ll
+ 1023  cd ..
+ 1024  cd macro_FR/
+ 1025  ls
+ 1026  cd Efficiencies/
+ 1027  ll
+ 1028  cd ..
+ 1029  ls
+ 1030  cd ..
+ 1031  ls
+ 1032  cd public/
+ 1033  ls
+ 1034  ll
+ 1035  cd ..
+ 1036  ls
+ 1037  cd public/
+ 1038  ls
+ 1039  cd ..
+ 1040  ls
+ 1041  cd scratch/
+ 1042  ls
+ 1043  cd $Zprime
+ 1044  ls
+ 1045  ll
+ 1046  cd ..
+ 1047  cd public/
+ 1048  ls
+ 1049  ll
+ 1050  cd GEM-DAQ
+ 1051  pwd
+ 1052  cd ..
+ 1053  cd www/
+ 1054  cd ..
+ 1055  ls
+ 1056  cd work
+ 1057  cd $workd
+ 1058  ls
+ 1059  cd Zprime/
+ 1060  ls
+ 1061  ll
+ 1062  mkdir TriggerEfficiency2016
+ 1063  cd TriggerEfficiency2016/
+ 1064  ls
+ 1065* 
+ 1066  scram list CMSSW_8_1
+ 1067  cmsrel CMSSW_8_0_14
+ 1068  cd CMSSW_8_0_14/src/
+ 1069  cmsenv
+ 1070  cd ..
+ 1071  pwd
+ 1072  emacs -nw /afs/cern.ch/user/c/cfgonzal/.bashrc
+ 1073  source /afs/cern.ch/user/c/cfgonzal/.bashrc
+ 1074  mkdir FastAnalyzer
+ 1075  cd FastAnalyzer/
+ 1076  mkedanlzr MiniAODAnalyzer
+ 1077  ls
+ 1078  cmsenv
+ 1079    source /cvmfs/cms.cern.ch/cmsset_default.sh
+ 1080  cmsenv
+ 1081  ls
+ 1082  cd ../../
+ 1083  ls
+ 1084  cd Zprime/
+ 1085  ls
+ 1086  cd TriggerEfficiency2016/CMSSW_8_0_14/src/
+ 1087  cd ..
+ 1088  ls
+ 1089  rm FastAnalyzer/
+ 1090  cd TriggerEfficiency2016/CMSSW_8_0_14/src/
+ 1091  cmsenv
+ 1092  mkdir FastAnalyzer
+ 1093  cd FastAnalyzer/
+ 1094  mkedanlzr MiniAODAnalyzer
+ 1095  ls
+ 1096  cd MiniAODAnalyzer/
+ 1097  ls
+ 1098  cd test/
+ 1099  ls
+ 1100  cd ..
+ 1101  cd python/
+ 1102  ls
+ 1103  cd ..
+ 1104  cd plugins/
+ 1105  ls
+ 1106  history > hiso.log
