@@ -19,6 +19,21 @@
 
 // system include files
 #include <memory>
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include <TBranch.h>
+#include <TTree.h>
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <string>
+#include <map>
+#include <sstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <TRandom3.h>
+#include <TClonesArray.h>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -28,6 +43,29 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
+
+//#include <DataFormats/PatCandidates/interface/GenericParticle.h>
+//#include <DataFormats/PatCandidates/interface/PackedGenParticle.h>
+#include <DataFormats/HepMCCandidate/interface/GenStatusFlags.h>
+#include <DataFormats/Candidate/interface/Candidate.h>
+
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+
+#include "DataFormats/PatCandidates/interface/Muon.h"
+//#include "DataFormats/PatCandidates/interface/Electron.h"
+
+
+//#include "DataFormats/MuonReco/interface/Muon.h"
+
+using namespace std;
+using namespace pat;
+using namespace reco;
+
 //
 // class declaration
 //
@@ -93,7 +131,9 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 {
    using namespace edm;
 
+   edm::Handle<pat::MuonCollection> muons;
 
+   /*
 
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
    Handle<ExampleData> pIn;
@@ -104,6 +144,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    ESHandle<SetupData> pSetup;
    iSetup.get<SetupRecord>().get(pSetup);
 #endif
+   */
 }
 
 
