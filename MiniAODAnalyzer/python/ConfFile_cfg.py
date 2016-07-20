@@ -26,7 +26,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        'root://xrootd.unl.edu//store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root'
+       # 'root://cms-xrd-global.cern.ch///store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root'
+        '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root'
     )
 )
 
@@ -44,8 +45,33 @@ process.TFileService = cms.Service("TFileService",
 )
 
 
-process.demo = cms.EDAnalyzer('MiniAODAnalyzer'
+process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
+                                 # input tags 
+                                 muons               = cms.InputTag("slimmedMuons"),
+#                                 vertex_inputtag              = cms.InputTag("offlinePrimaryVertices"),
+#                                 jet_inputtag              = cms.InputTag("slimmedJets")
+#                               
+
+
 )
+
+
+process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
+process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
+process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(False) 
+process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun2Loose")
+                              
+process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
+   inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
+   reverseDecision = cms.bool(False)
+)                             
+                              
+process.ApplyBaselineHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
+   inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHEIsoNoiseFilterResult'),
+   reverseDecision = cms.bool(False)
+)                             
+
+
 
 #process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
 #process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
@@ -70,7 +96,8 @@ process.p = cms.Path(#process.goodVerticesFilterRECO *
 		     #process.BadChargedCandidateFilter *
                      #process.egmGsfElectronIDSequence * 
                      #process.METSignificance * 
-                     process.demo
+                     process.egmGsfElectronIDSequence *
+                     process.miniAOD
 )
 
 

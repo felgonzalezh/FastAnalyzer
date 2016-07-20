@@ -43,5 +43,5 @@
 <use name="rootmath"/>
 <use name="hepmc"/>
 <use name="rootcore"/>
-
 <flags EDM_PLUGIN="1"/>
+
