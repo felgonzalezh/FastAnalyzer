@@ -21,7 +21,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_Prompt_v8', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -48,11 +48,8 @@ process.TFileService = cms.Service("TFileService",
 process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  # input tags 
                                  muons               = cms.InputTag("slimmedMuons"),
-#                                 vertex_inputtag              = cms.InputTag("offlinePrimaryVertices"),
-#                                 jet_inputtag              = cms.InputTag("slimmedJets")
-#                               
-
-
+                                 jets                = cms.InputTag("slimmedJets"),
+                                 taus                = cms.InputTag("slimmedTaus")
 )
 
 

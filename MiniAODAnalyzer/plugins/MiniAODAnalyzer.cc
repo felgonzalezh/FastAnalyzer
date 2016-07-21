@@ -116,13 +116,20 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   edm::Service<TFileService> fs;
   //Muon Token
   edm::EDGetTokenT<std::vector<pat::Muon> > theMuonToken;
-  edm::EDGetTokenT<reco::VertexCollection> vertexToken;  
-  edm::EDGetTokenT<edm::View<pat::Jet> > jetsToken;
+  edm::EDGetTokenT<std::vector<pat::Tau> > theTauToken;
+  //  edm::EDGetTokenT<reco::Jet>  theJetToken;
+  edm::EDGetTokenT<edm::View<pat::Jet> > theJetToken;
 
+  //  edm::EDGetTokenT<reco::VertexCollection> vertexToken;  
 
 
   // Muon histos;
   TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis;
+  //Jet histos
+  TH1F *jetptdis,*jetetadis,*jetphidis,*jetenergydis;
+  //Tau histos
+  TH1F *tauptdis,*tauetadis,*tauphidis,*tauenergydis,*tauchdis;
+
 
 
   TTree *myTree;
@@ -145,11 +152,23 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
 {
    //now do what ever initialization is needed
 
+  //  edm::ConsumesCollector&& iCC;
   // Muon token definition
+
+  //  edm::ConsumesCollector&& iCC;
+
   theMuonToken = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
+  theTauToken = consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("taus"));
+  //  jetsToken = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
+  //theJetToken = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
+  //  theJetToken = consumes<reco::Jet>(iConfig.getParameter<edm::InputTag>("jets"));
+
+  theJetToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
+
+  //
   /*
   vertexToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertex_inputtag"));  
-  jetsToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jet_inputtag"));
+
   */
 
   //  muonTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -197,11 +216,26 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    //Muon Collection
    edm::Handle<pat::MuonCollection> muons;
-   iEvent.getByLabel("slimmedMuons",muons);
-   /*
-   edm::Handle<pat::JetCollection> jets;
-   iEvent.getByLabel("slimmedJets", jets);
+   edm::Handle<pat::TauCollection> taus;
+   //   edm::Handle<reco::Jet> jets;
 
+
+   edm::Handle<edm::View<pat::Jet> > jets;
+   iEvent.getByToken(theJetToken, jets);
+
+
+
+   //   iEvent.getByToken(theJetToken, jets);   
+   iEvent.getByToken(theMuonToken, muons); 
+   iEvent.getByToken(theTauToken, taus);  
+
+
+   
+
+   //   edm::Handle<edm::View<pat::Jet> > jets;
+   
+
+ /*
    edm::Handle<reco::VertexCollection> vtx_h;
    iEvent.getByLabel("offlinePrimaryVertices", vtx_h);
    */
@@ -220,8 +254,44 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
 
 
+   //   for (const pat::Jet &ijet : *jets) { 
+   //   for(edm::View<pat::Jet>::const_iterator ijet=jets->begin(); ijet!=jets->end(); ++ijet){
+     
+   for(edm::View<pat::Jet>::const_iterator jet=jets->begin(); jet!=jets->end(); ++jet){
+     //   for (const pat::Jet &jet : *jets){
+   /*
+   for (const reco::Jet &j : *jets) { 
+   */
+     cout << "Jet pt " << jet->pt() << endl;
+     jetptdis->Fill(jet->pt());
+     jetetadis->Fill(jet->eta());
+     jetphidis->Fill(jet->phi());
+     jetenergydis->Fill(jet->energy());
+   }
+
+   if (!jets.isValid()) {
+     edm::LogWarning("MiniAODAnalyzer") << "no pat::Jets (AK4) in event";
+     return;
+   }
+
+   for (pat::TauCollection::const_iterator tau = taus->begin();  tau != taus->end(); ++tau){                   
+     cout << "Tau pt " << tau->pt() << endl;
+
+     tauptdis->Fill(tau->pt());
+     tauetadis->Fill(tau->eta());
+     tauphidis->Fill(tau->phi());
+     tauenergydis->Fill(tau->energy());
+     tauchdis->Fill(tau->charge());
+
+   }                                                                                      
+
+
+
+//--------------------------Working---------------
+
    for (pat::MuonCollection::const_iterator muon = muons->begin();  muon != muons->end(); ++muon){                   
 
+     cout << "Muon pt " << muon->pt() << endl;
      muptdis->Fill(muon->pt());
      muetadis->Fill(muon->eta());
      muphidis->Fill(muon->phi());
@@ -229,9 +299,6 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      muchdis->Fill(muon->charge());
                                                                
    }                                                                                      
-
-                                                                                                  
-     // pT spectra of muons                                                                                                                                                              
 
 
    /*
@@ -254,12 +321,26 @@ void
 MiniAODAnalyzer::beginJob()
 {
 
+
   myTree = fs->make<TTree>("Tree","Tree");
+  //muon histos
   muptdis  = fs->make<TH1F>("muptdis","muptdis",500,0,2000);
-  muetadis  = fs->make<TH1F>("muetadis","muetadis",500,-4,4);
-  muphidis  = fs->make<TH1F>("muphidis","muphidis",500,-3.5,3.5);
+  muetadis  = fs->make<TH1F>("muetadis","muetadis",20,-4,4);
+  muphidis  = fs->make<TH1F>("muphidis","muphidis",20,-3.5,3.5);
   muenergydis  = fs->make<TH1F>("muenergydis","muenergydis",500,0,2000);
-  muchdis  = fs->make<TH1F>("muchdis","muchdis",5,-2,2);
+  muchdis  = fs->make<TH1F>("muchdis","muchdis",1,-2,2);
+  //jet histos
+  jetptdis  = fs->make<TH1F>("jetptdis","jetptdis",500,0,2000);
+  jetetadis  = fs->make<TH1F>("jetetadis","jetetadis",20,-4,4);
+  jetphidis  = fs->make<TH1F>("jetphidis","jetphidis",20,-3.5,3.5);
+  jetenergydis  = fs->make<TH1F>("jetenergydis","jetenergydis",500,0,2000);
+  //tau histos
+  tauptdis  = fs->make<TH1F>("tauptdis","tauptdis",500,0,2000);
+  tauetadis  = fs->make<TH1F>("tauetadis","tauetadis",20,-4,4);
+  tauphidis  = fs->make<TH1F>("tauphidis","tauphidis",20,-3.5,3.5);
+  tauenergydis  = fs->make<TH1F>("tauenergydis","tauenergydis",500,0,2000);
+  tauchdis  = fs->make<TH1F>("tauchdis","tauchdis",4,-2,2);
+
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
