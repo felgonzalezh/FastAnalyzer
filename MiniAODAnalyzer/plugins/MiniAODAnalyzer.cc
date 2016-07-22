@@ -110,18 +110,23 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
       virtual void endJob() override;
 
       // ----------member data ---------------------------
+  edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > electronLooseIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > electronTightIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > eleHEEPIdMapToken;
 
+  
   bool isGoodVertex(const reco::Vertex& vtx);	
 
   edm::Service<TFileService> fs;
-  //Muon Token
+
+  //Objects Token
   edm::EDGetTokenT<std::vector<pat::Muon> > theMuonToken;
   edm::EDGetTokenT<std::vector<pat::Tau> > theTauToken;
-  //  edm::EDGetTokenT<reco::Jet>  theJetToken;
+  edm::EDGetTokenT<edm::View<pat::Electron> > theElectronToken;
   edm::EDGetTokenT<edm::View<pat::Jet> > theJetToken;
-
-  //  edm::EDGetTokenT<reco::VertexCollection> vertexToken;  
-
+  edm::EDGetTokenT<reco::VertexCollection> vertexToken;  
 
   // Muon histos;
   TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis;
@@ -129,8 +134,8 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   TH1F *jetptdis,*jetetadis,*jetphidis,*jetenergydis;
   //Tau histos
   TH1F *tauptdis,*tauetadis,*tauphidis,*tauenergydis,*tauchdis;
-
-
+  //Electron histos
+  TH1F *electronptdis,*electronetadis,*electronphidis,*electronenergydis,*electronchdis;
 
   TTree *myTree;
   double totalweight;
@@ -151,35 +156,19 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
 
 {
    //now do what ever initialization is needed
+  electronVetoIdMapToken =consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"));
+  electronLooseIdMapToken = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronLooseIdMap"));
+  electronMediumIdMapToken = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap"));
+  electronTightIdMapToken = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"));
+  eleHEEPIdMapToken = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleHEEPIdMap"));
 
-  //  edm::ConsumesCollector&& iCC;
-  // Muon token definition
-
-  //  edm::ConsumesCollector&& iCC;
 
   theMuonToken = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   theTauToken = consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("taus"));
-  //  jetsToken = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
-  //theJetToken = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
-  //  theJetToken = consumes<reco::Jet>(iConfig.getParameter<edm::InputTag>("jets"));
-
   theJetToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
+  theElectronToken = consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
 
-  //
-  /*
-  vertexToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertex_inputtag"));  
-
-  */
-
-  //  muonTag_ = iConfig.getParameter<edm::InputTag>("muons");
-  /*
-  muptdis = iConfig.getParameter<double>("muptdis");
-  muetadis = iConfig.getParameter<double>("muetadis");
-  muphidis = iConfig.getParameter<double>("muphidis");
-  muenergydis = iConfig.getParameter<double>("muenergydis");
-  muchdis = iConfig.getParameter<double>("muchdis");
-  */
-
+  vertexToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));  
 
    //now do what ever initialization is needed
 
@@ -217,46 +206,39 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    //Muon Collection
    edm::Handle<pat::MuonCollection> muons;
    edm::Handle<pat::TauCollection> taus;
-   //   edm::Handle<reco::Jet> jets;
-
-
+   edm::Handle<edm::View<pat::Electron> > electrons;
    edm::Handle<edm::View<pat::Jet> > jets;
+
    iEvent.getByToken(theJetToken, jets);
-
-
-
-   //   iEvent.getByToken(theJetToken, jets);   
    iEvent.getByToken(theMuonToken, muons); 
    iEvent.getByToken(theTauToken, taus);  
+   iEvent.getByToken(theElectronToken, electrons);
+
+   edm::Handle<reco::VertexCollection> vertices;
+   iEvent.getByToken(vertexToken, vertices);
+
 
 
    
-
-   //   edm::Handle<edm::View<pat::Jet> > jets;
-   
-
- /*
-   edm::Handle<reco::VertexCollection> vtx_h;
-   iEvent.getByLabel("offlinePrimaryVertices", vtx_h);
-   */
-   /*
-   
-   reco::VertexCollection::const_iterator firstGoodVertex = vtx_h->end();
-   for (reco::VertexCollection::const_iterator it = vtx_h->begin(); it != firstGoodVertex; it++)
+   reco::VertexCollection::const_iterator firstGoodVertex = vertices->end();
+   for (reco::VertexCollection::const_iterator it = vertices->begin(); it != firstGoodVertex; it++)
      {
        isGoodVertex(*it);
        firstGoodVertex = it;
        break;
      }
-   */
    // require a good vertex 
-   // if (firstGoodVertex == vtx_h->end()) return;
+   if (firstGoodVertex == vertices->end()) return;
   
+   for(edm::View<pat::Electron>::const_iterator electron = electrons->begin(); electron != electrons->end(); electron++) {
+     cout << "Electron pt " << electron->pt() << endl;
+     electronptdis->Fill(electron->pt());
+     electronetadis->Fill(electron->eta());
+     electronphidis->Fill(electron->phi());
+     electronenergydis->Fill(electron->energy());
+     electronchdis->Fill(electron->charge());
+   }
 
-
-   //   for (const pat::Jet &ijet : *jets) { 
-   //   for(edm::View<pat::Jet>::const_iterator ijet=jets->begin(); ijet!=jets->end(); ++ijet){
-     
    for(edm::View<pat::Jet>::const_iterator jet=jets->begin(); jet!=jets->end(); ++jet){
      //   for (const pat::Jet &jet : *jets){
    /*
@@ -340,7 +322,12 @@ MiniAODAnalyzer::beginJob()
   tauphidis  = fs->make<TH1F>("tauphidis","tauphidis",20,-3.5,3.5);
   tauenergydis  = fs->make<TH1F>("tauenergydis","tauenergydis",500,0,2000);
   tauchdis  = fs->make<TH1F>("tauchdis","tauchdis",4,-2,2);
-
+  //electron histos
+  electronptdis  = fs->make<TH1F>("electronptdis","electronptdis",500,0,2000);
+  electronetadis  = fs->make<TH1F>("electronetadis","electronetadis",20,-4,4);
+  electronphidis  = fs->make<TH1F>("electronphidis","electronphidis",20,-3.5,3.5);
+  electronenergydis  = fs->make<TH1F>("electronenergydis","electronenergydis",500,0,2000);
+  electronchdis  = fs->make<TH1F>("electronchdis","electronchdis",4,-2,2);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

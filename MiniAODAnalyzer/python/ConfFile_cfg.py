@@ -21,7 +21,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_Prompt_v8', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -46,10 +46,20 @@ process.TFileService = cms.Service("TFileService",
 
 
 process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
+
+                                 electronVetoIdMap   = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
+                                 electronLooseIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
+                                 electronMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+                                 electronTightIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
+                                 eleHEEPIdMap        = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
+
+
                                  # input tags 
                                  muons               = cms.InputTag("slimmedMuons"),
                                  jets                = cms.InputTag("slimmedJets"),
-                                 taus                = cms.InputTag("slimmedTaus")
+                                 taus                = cms.InputTag("slimmedTaus"),
+                                 electrons           = cms.InputTag("slimmedElectrons"),
+                                 vertices            = cms.InputTag("offlineSlimmedPrimaryVertices"),
 )
 
 
