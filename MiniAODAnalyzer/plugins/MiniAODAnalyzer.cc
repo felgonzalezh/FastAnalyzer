@@ -110,11 +110,6 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
       virtual void endJob() override;
 
       // ----------member data ---------------------------
-  edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken;
-  edm::EDGetTokenT<edm::ValueMap<bool> > electronLooseIdMapToken;
-  edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken;
-  edm::EDGetTokenT<edm::ValueMap<bool> > electronTightIdMapToken;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleHEEPIdMapToken;
 
   
   bool isGoodVertex(const reco::Vertex& vtx);	
@@ -127,6 +122,18 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   edm::EDGetTokenT<edm::View<pat::Electron> > theElectronToken;
   edm::EDGetTokenT<edm::View<pat::Jet> > theJetToken;
   edm::EDGetTokenT<reco::VertexCollection> vertexToken;  
+
+  //Electron Token
+  edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > electronLooseIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > electronTightIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > eleHEEPIdMapToken;
+
+  //Trigger Token
+  edm::EDGetTokenT<edm::TriggerResults> triggerResultsTag;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales;
+
 
   // Muon histos;
   TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis;
@@ -156,20 +163,25 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
 
 {
    //now do what ever initialization is needed
+  //Vertex
+  vertexToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));  
+
+  //Object
+  theMuonToken = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
+  theTauToken = consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("taus"));
+  theJetToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
+  theElectronToken = consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
+
+  //Electron Vetos
   electronVetoIdMapToken =consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"));
   electronLooseIdMapToken = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronLooseIdMap"));
   electronMediumIdMapToken = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap"));
   electronTightIdMapToken = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"));
   eleHEEPIdMapToken = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleHEEPIdMap"));
 
-
-  theMuonToken = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
-  theTauToken = consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("taus"));
-  theJetToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
-  theElectronToken = consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
-
-  vertexToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));  
-
+  //Trigger
+  triggerResultsTag  = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
+  triggerPrescales   = consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("trigger_prescale"));
    //now do what ever initialization is needed
 
 
@@ -195,27 +207,53 @@ void
 MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
-   /*
-   edm::Handle<pat::TauCollection> taus;
-   edm::Handle<pat::METCollection> met;
-   
-   edm::Handle<edm::View<pat::Electron> > electron_pat;
-   */
-   //Vertex Collection
 
-   //Muon Collection
+   //Vertex Collection
+   edm::Handle<reco::VertexCollection> vertices;
+   iEvent.getByToken(vertexToken, vertices);
+
+   //Object Collections
    edm::Handle<pat::MuonCollection> muons;
    edm::Handle<pat::TauCollection> taus;
    edm::Handle<edm::View<pat::Electron> > electrons;
    edm::Handle<edm::View<pat::Jet> > jets;
-
    iEvent.getByToken(theJetToken, jets);
    iEvent.getByToken(theMuonToken, muons); 
    iEvent.getByToken(theTauToken, taus);  
    iEvent.getByToken(theElectronToken, electrons);
 
-   edm::Handle<reco::VertexCollection> vertices;
-   iEvent.getByToken(vertexToken, vertices);
+   //Electron Vetos
+   edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+   edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+   edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+   edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+   edm::Handle<edm::ValueMap<bool> > heep_id_decisions;
+   iEvent.getByToken(electronVetoIdMapToken,veto_id_decisions);
+   iEvent.getByToken(electronLooseIdMapToken,loose_id_decisions);
+   iEvent.getByToken(electronMediumIdMapToken,medium_id_decisions);
+   iEvent.getByToken(electronTightIdMapToken,tight_id_decisions);  
+   iEvent.getByToken(eleHEEPIdMapToken, heep_id_decisions);
+
+   //Trigger
+   edm::Handle<edm::TriggerResults> triggerBits;
+   iEvent.getByToken(triggerResultsTag, triggerBits);
+
+   edm::Handle<pat::PackedTriggerPrescales> trigger_prescale;
+   iEvent.getByToken(triggerPrescales, trigger_prescale);
+
+   /*
+   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+   iEvent.getByToken("selectedPatTrigger", triggerObjects);
+
+   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesL1min;
+   iEvent.getByToken(triggerPrescalesL1min_, triggerPrescalesL1min);
+
+
+   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesL1max;
+   iEvent.getByToken(triggerPrescalesL1max_, triggerPrescalesL1max);
+   */
+   
+   
 
 
 

@@ -60,6 +60,11 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  taus                = cms.InputTag("slimmedTaus"),
                                  electrons           = cms.InputTag("slimmedElectrons"),
                                  vertices            = cms.InputTag("offlineSlimmedPrimaryVertices"),
+
+                                 triggerBits                = cms.InputTag("TriggerResults","","HLT"),
+                                 trigger_prescale           = cms.InputTag("patTrigger"),
+                                 objects             = cms.InputTag("selectedPatTrigger"),  
+
 )
 
 
