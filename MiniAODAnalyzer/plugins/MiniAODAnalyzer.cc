@@ -130,11 +130,22 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   edm::EDGetTokenT<edm::ValueMap<bool> > electronTightIdMapToken;
   edm::EDGetTokenT<edm::ValueMap<bool> > eleHEEPIdMapToken;
 
+  //MET
+  edm::EDGetTokenT<pat::METCollection> metToken_;
+
   //Trigger Token
   edm::EDGetTokenT<edm::TriggerResults> triggerResultsTag;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescalesL1max_;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescalesL1min_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> trigger_objects;
 
-
+  //Trigger Paths
+  string HLTPath1;/* HLTFilter1a, HLTFilter1b;
+  string HLTPath2, HLTFilter2a,HLTFilter2b,HLTFilter2c,HLTFilter2d;   
+  string HLTPath3, HLTFilter3a, HLTFilter3b;
+  string HLTPath4 , HLTFilter4a, HLTFilter4b;  	
+		  */
   // Muon histos;
   TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis;
   //Jet histos
@@ -143,7 +154,9 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   TH1F *tauptdis,*tauetadis,*tauphidis,*tauenergydis,*tauchdis;
   //Electron histos
   TH1F *electronptdis,*electronetadis,*electronphidis,*electronenergydis,*electronchdis;
-
+  //MET
+  TH1F *Met_type1PF_pt,*Met_type1PF_px, *Met_type1PF_py,*Met_type1PF_pz,*Met_type1PF_phi,*Met_type1PF_sumEt; 
+   
   TTree *myTree;
   double totalweight;
 };
@@ -171,6 +184,9 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
   theTauToken = consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("taus"));
   theJetToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
   theElectronToken = consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
+  //MET
+  metToken_ = consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
+
 
   //Electron Vetos
   electronVetoIdMapToken =consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"));
@@ -182,8 +198,21 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
   //Trigger
   triggerResultsTag  = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
   triggerPrescales   = consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("trigger_prescale"));
-   //now do what ever initialization is needed
+  trigger_objects = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
+  triggerPrescalesL1max_ = consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("l1max"));
+  triggerPrescalesL1min_ = consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("l1min"));
 
+  //Trigger Paths
+  HLTPath1 = iConfig.getParameter<string>("HLTPath1");
+  /*  HLTFilter1a = iConfig.getParameter<string>("HLTFilter1a");
+  HLTFilter1b = iConfig.getParameter<string>("HLTFilter1b");
+  HLTPath2 = iConfig.getParameter<string>("HLTPath2");
+  HLTFilter2a = iConfig.getParameter<string>("HLTFilter2a");
+  HLTFilter2b = iConfig.getParameter<string>("HLTFilter2b");
+  */
+
+
+   //now do what ever initialization is needed
 
 }
 
@@ -221,6 +250,10 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    iEvent.getByToken(theMuonToken, muons); 
    iEvent.getByToken(theTauToken, taus);  
    iEvent.getByToken(theElectronToken, electrons);
+   //MET
+   edm::Handle<pat::METCollection> mets;
+   iEvent.getByToken(metToken_, mets);
+   const pat::MET &met = mets->front();
 
    //Electron Vetos
    edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
@@ -236,28 +269,17 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    //Trigger
    edm::Handle<edm::TriggerResults> triggerBits;
-   iEvent.getByToken(triggerResultsTag, triggerBits);
-
    edm::Handle<pat::PackedTriggerPrescales> trigger_prescale;
-   iEvent.getByToken(triggerPrescales, trigger_prescale);
-
-   /*
-   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-   iEvent.getByToken("selectedPatTrigger", triggerObjects);
-
    edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesL1min;
-   iEvent.getByToken(triggerPrescalesL1min_, triggerPrescalesL1min);
-
-
    edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesL1max;
+   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+   iEvent.getByToken(triggerResultsTag, triggerBits);
+   iEvent.getByToken(triggerPrescales, trigger_prescale);
+   iEvent.getByToken(triggerPrescalesL1min_, triggerPrescalesL1min);
    iEvent.getByToken(triggerPrescalesL1max_, triggerPrescalesL1max);
-   */
-   
-   
+   iEvent.getByToken(trigger_objects, triggerObjects);   
 
-
-
-   
+   // Vertex
    reco::VertexCollection::const_iterator firstGoodVertex = vertices->end();
    for (reco::VertexCollection::const_iterator it = vertices->begin(); it != firstGoodVertex; it++)
      {
@@ -277,11 +299,18 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      electronchdis->Fill(electron->charge());
    }
 
+   //Trigger Information
+   bool trigfired = false;
+   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+
+   for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
+     if((names.triggerName(i) == HLTPath1) && (triggerBits->accept(i) == 1)) {trigfired = true;} 
+   }
+   if(!(trigfired)) return;
+
+
+   // Object Information (Jets, Tau, Electron, Muons)
    for(edm::View<pat::Jet>::const_iterator jet=jets->begin(); jet!=jets->end(); ++jet){
-     //   for (const pat::Jet &jet : *jets){
-   /*
-   for (const reco::Jet &j : *jets) { 
-   */
      cout << "Jet pt " << jet->pt() << endl;
      jetptdis->Fill(jet->pt());
      jetetadis->Fill(jet->eta());
@@ -305,10 +334,6 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    }                                                                                      
 
-
-
-//--------------------------Working---------------
-
    for (pat::MuonCollection::const_iterator muon = muons->begin();  muon != muons->end(); ++muon){                   
 
      cout << "Muon pt " << muon->pt() << endl;
@@ -320,6 +345,14 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                                                                
    }                                                                                      
 
+   //MET
+   Met_type1PF_pt->Fill(met.pt());
+   Met_type1PF_px->Fill(met.px());
+   Met_type1PF_py->Fill(met.py());
+   Met_type1PF_pz->Fill(met.pz());
+   Met_type1PF_phi->Fill(met.phi());
+   Met_type1PF_sumEt->Fill(met.sumEt());  
+   
 
    /*
 
@@ -366,6 +399,15 @@ MiniAODAnalyzer::beginJob()
   electronphidis  = fs->make<TH1F>("electronphidis","electronphidis",20,-3.5,3.5);
   electronenergydis  = fs->make<TH1F>("electronenergydis","electronenergydis",500,0,2000);
   electronchdis  = fs->make<TH1F>("electronchdis","electronchdis",4,-2,2);
+  //MET histos
+   Met_type1PF_pt = fs->make<TH1F>("METptdis","METptdis",500,0,2000);
+   Met_type1PF_px = fs->make<TH1F>("METpt_x_dis","METpt_x_dis",500,0,2000);
+   Met_type1PF_py = fs->make<TH1F>("METpt_y_dis","METpt_y_dis",500,0,2000);
+   Met_type1PF_pz = fs->make<TH1F>("METpt_z_dis","METpt_z_dis",500,0,2000);
+   Met_type1PF_phi = fs->make<TH1F>("METphidis","METphidis",20,-3.5,3.5);
+   Met_type1PF_sumEt = fs->make<TH1F>("METenergydis","METenergydis",500,0,2000);
+
+
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

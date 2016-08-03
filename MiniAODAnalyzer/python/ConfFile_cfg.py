@@ -21,7 +21,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_Prompt_v8', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -53,17 +53,23 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  electronTightIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
                                  eleHEEPIdMap        = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
 
-
+                                 #Trigger Paths
+                                 HLTPath1 =  cms.string( "HLT_IsoMu20_v4"),  #HLT_IsoMu24_eta2p1_v1" ),
+         
                                  # input tags 
                                  muons               = cms.InputTag("slimmedMuons"),
                                  jets                = cms.InputTag("slimmedJets"),
                                  taus                = cms.InputTag("slimmedTaus"),
                                  electrons           = cms.InputTag("slimmedElectrons"),
                                  vertices            = cms.InputTag("offlineSlimmedPrimaryVertices"),
+                                 mets                = cms.InputTag("slimmedMETs"),
 
                                  triggerBits                = cms.InputTag("TriggerResults","","HLT"),
                                  trigger_prescale           = cms.InputTag("patTrigger"),
-                                 objects             = cms.InputTag("selectedPatTrigger"),  
+                                 triggerObjects             = cms.InputTag("selectedPatTrigger"),			  
+                                 l1min = cms.InputTag("patTrigger","l1min"),
+                                 l1max = cms.InputTag("patTrigger","l1max")           
+  
 
 )
 
@@ -83,31 +89,12 @@ process.ApplyBaselineHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
    reverseDecision = cms.bool(False)
 )                             
 
-
-
-#process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
-#process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
-#process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
-
-# include bad charged hadron filter
-#process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
-#process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
-#process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
-
-# re-calculate MET significance and the covariance matrix
 process.load("RecoMET/METProducers.METSignificance_cfi")
 process.load("RecoMET/METProducers.METSignificanceParams_cfi")
 
-process.p = cms.Path(#process.goodVerticesFilterRECO * 
-                     #process.CSCTightHaloFilterRECO *
-                     #process.eeBadScFilterRECO *
-                     #process.EcalDeadCellTriggerPrimitiveFilterRECO *
-                     #process.HBHENoiseFilterRECO * 
-                     #process.HBHENoiseIsoFilterRECO * 
-		     #process.BadPFMuonFilter *
-		     #process.BadChargedCandidateFilter *
-                     #process.egmGsfElectronIDSequence * 
-                     #process.METSignificance * 
+process.p = cms.Path(
+#                     process.HBHENoiseFilterResultProducer * 
+#                     process.ApplyBaselineHBHENoiseFilter *    
                      process.egmGsfElectronIDSequence *
                      process.miniAOD
 )
