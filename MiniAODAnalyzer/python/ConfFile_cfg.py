@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+#process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
@@ -21,7 +21,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_Prompt_v8', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -57,7 +57,7 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  HLTPath1 =  cms.string( "HLT_IsoMu20_v4"),  #HLT_IsoMu24_eta2p1_v1" ),
                                  HLTFilter1a= cms.string( "hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p09"),
                                  HLTFilter1b= cms.string( "hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p09"),
-                                 HLTPath2 =  cms.string( "HLT_IsoMu17_eta2p1_MediumIsoPFTau40_Trk1_eta2p1_Reg_v3"),
+                                 HLTPath2 =  cms.string( "HLT_IsoMu19_eta2p1_MediumIsoPFTau32_Trk1_eta2p1_Reg_v2" ), #"HLT_IsoMu17_eta2p1_MediumIsoPFTau40_Trk1_eta2p1_Reg_v3"),
                                  HLTFilter2a = cms.string( "hltL3crIsoL1sMu16erTauJet20erL1f0L2f10QL3f17QL3trkIsoFiltered0p09" ),
                                  HLTFilter2b = cms.string( "hltOverlapFilterIsoMu17MediumIsoPFTau40Reg" ),
 
