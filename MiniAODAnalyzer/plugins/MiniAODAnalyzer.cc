@@ -5,10 +5,10 @@
 // 
 /**\class MiniAODAnalyzer MiniAODAnalyzer.cc FastAnalyzer/MiniAODAnalyzer/plugins/MiniAODAnalyzer.cc
 
- Description: [one line class summary]
+   Description: [one line class summary]
 
- Implementation:
-     [Notes on implementation]
+   Implementation:
+   [Notes on implementation]
 */
 //
 // Original Author:  Carlos Felipe Gonzalez Hernandez
@@ -97,19 +97,19 @@ using namespace reco;
 // This will improve performance in multithreaded jobs.
 
 class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
-   public:
-      explicit MiniAODAnalyzer(const edm::ParameterSet&);
-      ~MiniAODAnalyzer();
+public:
+  explicit MiniAODAnalyzer(const edm::ParameterSet&);
+  ~MiniAODAnalyzer();
 
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 
-   private:
-      virtual void beginJob() override;
-      virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-      virtual void endJob() override;
+private:
+  virtual void beginJob() override;
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+  virtual void endJob() override;
 
-      // ----------member data ---------------------------
+  // ----------member data ---------------------------
 
   
   bool isGoodVertex(const reco::Vertex& vtx);	
@@ -146,13 +146,22 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   string HLTPath3, HLTFilter3a, HLTFilter3b;
   string HLTPath4, HLTFilter4a, HLTFilter4b;  	
 		 
+  //Samples
+  bool isMC, isZtau, isZprime, GenReq ;double weightevt, sumweight, DYOthersBG;
+
+  //Total Events
+  TH1F *hFillEventTotal, *hFillEventMuon, *hFillEventTau;
+
   // Muon histos;
-  TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis;
-  //Jet histos
+  TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis,*hmuonid, *hmuoniso;
+   // *htauid, *hchargereq, *hmtcut, *hpzeta, *hmuonmatch, *htaumatch1, *htaumatch2;
+
+ //Jet histos
   TH1F *jetptdis,*jetetadis,*jetphidis,*jetenergydis;
   //Tau histos
   TH1F *tauptdis,*tauetadis,*tauphidis,*tauenergydis,*tauchdis;
   //Electron histos
+  bool iselectron;
   TH1F *electronptdis,*electronetadis,*electronphidis,*electronenergydis,*electronchdis;
   //MET
   TH1F *Met_type1PF_pt,*Met_type1PF_px, *Met_type1PF_py,*Met_type1PF_pz,*Met_type1PF_phi,*Met_type1PF_sumEt; 
@@ -161,7 +170,7 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   double TauPtCut,TauEtaCut,TauIsoCutMax,TauIsoCutMin, MuonPtCut, MuonEtaCut, IsoMuonMax, MotherpdgID;
   string TauDMF,TauEleVeto,TauMuVeto,TauIsoString;
   bool isOSCharge;
-  
+  float myMT;
 
   //Cut functions  
   float mTCalculation(const pat::Muon& muobject, const pat::MET& metobject);
@@ -170,6 +179,7 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   bool TauSelection( const pat::Tau &myTau, const reco::Vertex &vtx );
   bool MuSelection( const pat::Muon &myMuon, const reco::Vertex &vtx );
   bool ExtraMuon(const pat::Muon& muobject, edm::Handle<pat::MuonCollection> muons, const reco::Vertex &vtx);
+  //bool BJetsinEvent(edm::Handle<edm::View<pat::Jet> > myjets, const pat::Muon &myMuon, const pat::Tau &myTau);
   bool BJetsinEvent( edm::Handle<pat::JetCollection> myjets,  const pat::Muon &myMuon, const pat::Tau &myTau);
   bool matchedTrigger1, matchedTrigger2 ;
 
@@ -191,18 +201,25 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
 MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
 
 {
-   //now do what ever initialization is needed
+  //now do what ever initialization is needed
   //Vertex
   vertexToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));  
+
+  //samples
+  isMC = iConfig.getParameter<bool>("isMC");
+  isZtau = iConfig.getParameter<bool>("isZtau");
+  isZprime = iConfig.getParameter<bool>("isZprime");
+  GenReq = iConfig.getParameter<bool>("GenReq");
+	
 
   //Object
   theMuonToken = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   theTauToken = consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("taus"));
   theJetToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
+  //  theJetToken = consumes<pat::JetCollection> >(iConfig.getParameter<edm::InputTag>("jets"));
   theElectronToken = consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
   //MET
   metToken_ = consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
-
 
   //Electron Vetos
   electronVetoIdMapToken =consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"));
@@ -247,8 +264,8 @@ MiniAODAnalyzer::~MiniAODAnalyzer()
 {
  
 
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
+  // do anything here that needs to be done at desctruction time
+  // (e.g. close files, deallocate resources etc.)
 
 }
 
@@ -261,137 +278,229 @@ MiniAODAnalyzer::~MiniAODAnalyzer()
 void
 MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   using namespace edm;
+  using namespace edm;
 
-   //Vertex Collection
-   edm::Handle<reco::VertexCollection> vertices;
-   iEvent.getByToken(vertexToken, vertices);
+  //Vertex Collection
+  edm::Handle<reco::VertexCollection> vertices;
+  iEvent.getByToken(vertexToken, vertices);
 
-   //Object Collections
-   edm::Handle<pat::MuonCollection> muons;
-   edm::Handle<pat::TauCollection> taus;
-   edm::Handle<edm::View<pat::Electron> > electrons;
-   edm::Handle<edm::View<pat::Jet> > jets;
-   iEvent.getByToken(theJetToken, jets);
-   iEvent.getByToken(theMuonToken, muons); 
-   iEvent.getByToken(theTauToken, taus);  
-   iEvent.getByToken(theElectronToken, electrons);
-   //MET
-   edm::Handle<pat::METCollection> mets;
-   iEvent.getByToken(metToken_, mets);
-   const pat::MET &met = mets->front();
+  //Object Collections
+  edm::Handle<pat::MuonCollection> muons;
+  edm::Handle<pat::TauCollection> taus;
+  edm::Handle<edm::View<pat::Electron> > electrons;
+  edm::Handle<edm::View<pat::Jet> > jets;
+  //  edm::Handle<edm::JetCollection > jets;
+  iEvent.getByToken(theJetToken, jets);
+  iEvent.getByToken(theMuonToken, muons); 
+  iEvent.getByToken(theTauToken, taus);  
+  iEvent.getByToken(theElectronToken, electrons);
 
-   //Electron Vetos
-   edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
-   edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
-   edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-   edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
-   edm::Handle<edm::ValueMap<bool> > heep_id_decisions;
-   iEvent.getByToken(electronVetoIdMapToken,veto_id_decisions);
-   iEvent.getByToken(electronLooseIdMapToken,loose_id_decisions);
-   iEvent.getByToken(electronMediumIdMapToken,medium_id_decisions);
-   iEvent.getByToken(electronTightIdMapToken,tight_id_decisions);  
-   iEvent.getByToken(eleHEEPIdMapToken, heep_id_decisions);
 
-   //Trigger
-   edm::Handle<edm::TriggerResults> triggerBits;
-   edm::Handle<pat::PackedTriggerPrescales> trigger_prescale;
-   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesL1min;
-   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesL1max;
-   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-   iEvent.getByToken(triggerResultsTag, triggerBits);
-   iEvent.getByToken(triggerPrescales, trigger_prescale);
-   iEvent.getByToken(triggerPrescalesL1min_, triggerPrescalesL1min);
-   iEvent.getByToken(triggerPrescalesL1max_, triggerPrescalesL1max);
-   iEvent.getByToken(trigger_objects, triggerObjects);   
+  edm::Handle<pat::JetCollection> jetscollection;
 
-   // Vertex
-   reco::VertexCollection::const_iterator firstGoodVertex = vertices->end();
-   for (reco::VertexCollection::const_iterator it = vertices->begin(); it != firstGoodVertex; it++)
-     {
-       isGoodVertex(*it);
-       firstGoodVertex = it;
-       break;
-     }
-   // require a good vertex 
-   if (firstGoodVertex == vertices->end()) return;
+
+  //MET
+  edm::Handle<pat::METCollection> mets;
+  iEvent.getByToken(metToken_, mets);
+  const pat::MET &Met = mets->front();
+  /*
+  Met_type1PF_pt->Fill(met.pt());
+  Met_type1PF_px->Fill(met.px());
+  Met_type1PF_py->Fill(met.py());
+  Met_type1PF_pz->Fill(met.pz());
+  Met_type1PF_phi->Fill(met.phi());
+  Met_type1PF_sumEt->Fill(met.sumEt());  
+  */
+
+  //Electron Vetos
+  edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > heep_id_decisions;
+  iEvent.getByToken(electronVetoIdMapToken,veto_id_decisions);
+  iEvent.getByToken(electronLooseIdMapToken,loose_id_decisions);
+  iEvent.getByToken(electronMediumIdMapToken,medium_id_decisions);
+  iEvent.getByToken(electronTightIdMapToken,tight_id_decisions);  
+  iEvent.getByToken(eleHEEPIdMapToken, heep_id_decisions);
+
+  //Trigger
+  edm::Handle<edm::TriggerResults> triggerBits;
+  edm::Handle<pat::PackedTriggerPrescales> trigger_prescale;
+  edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesL1min;
+  edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesL1max;
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+  iEvent.getByToken(triggerResultsTag, triggerBits);
+  iEvent.getByToken(triggerPrescales, trigger_prescale);
+  iEvent.getByToken(triggerPrescalesL1min_, triggerPrescalesL1min);
+  iEvent.getByToken(triggerPrescalesL1max_, triggerPrescalesL1max);
+  iEvent.getByToken(trigger_objects, triggerObjects);   
+
+  // Vertex
+  reco::VertexCollection::const_iterator firstGoodVertex = vertices->end();
+  for (reco::VertexCollection::const_iterator it = vertices->begin(); it != firstGoodVertex; it++)
+    {
+      isGoodVertex(*it);
+      firstGoodVertex = it;
+      break;
+    }
+  // require a good vertex 
+  if (firstGoodVertex == vertices->end()) return;
+
+  //Trigger Information
+  bool trigfired = false;
+  const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+
+  for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
+    if((names.triggerName(i) == HLTPath1) && (triggerBits->accept(i) == 1)) {trigfired = true;} 
+  }
+  if(!(trigfired)) return;
+  hFillEventTau->Fill(1);  
+
+  // NOW TRIGGER LEVEL INFORMATION
+  //  bool isData = false;
+  matchedTrigger1 = false;
+  matchedTrigger2 = false;
+   
+  int muonid = 0;
+  int muoniso = 0;
+  int tauid = 0;
+  int chargereq = 0;
+  int mtcut=0;
+  int pzeta=0;
+  int muonmatch = 0;
+  int taumatch1 = 0;
+  int taumatch2 = 0;
   
-   for(edm::View<pat::Electron>::const_iterator electron = electrons->begin(); electron != electrons->end(); electron++) {
-     cout << "Electron pt " << electron->pt() << endl;
-     electronptdis->Fill(electron->pt());
-     electronetadis->Fill(electron->eta());
-     electronphidis->Fill(electron->phi());
-     electronenergydis->Fill(electron->energy());
-     electronchdis->Fill(electron->charge());
-   }
-   /*
-   //Trigger Information
-   bool trigfired = false;
-   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
 
-   for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
-     if((names.triggerName(i) == HLTPath1) && (triggerBits->accept(i) == 1)) {trigfired = true;} 
-   }
-   if(!(trigfired)) return;
-   */
+  // mu loop
+  for (pat::MuonCollection::const_iterator myMuon = muons->begin(); myMuon != muons->end(); ++myMuon) {
 
-   // Object Information (Jets, Tau, Electron, Muons)
-   for(edm::View<pat::Jet>::const_iterator jet=jets->begin(); jet!=jets->end(); ++jet){
-     cout << "Jet pt " << jet->pt() << endl;
-     jetptdis->Fill(jet->pt());
-     jetetadis->Fill(jet->eta());
-     jetphidis->Fill(jet->phi());
-     jetenergydis->Fill(jet->energy());
-   }
+    if((MuSelection( *myMuon, *firstGoodVertex ))){
+      muonid++;
+      muoniso++;
+      
+      for (pat::TauCollection::const_iterator myTau = taus->begin(); myTau != taus->end(); ++myTau) {                                                                                                   
+	if((TauSelection(*myTau, *firstGoodVertex))) {
+	  tauid++;
 
-   if (!jets.isValid()) {
-     edm::LogWarning("MiniAODAnalyzer") << "no pat::Jets (AK4) in event";
-     return;
-   }
+	  if(deltaR(myMuon->p4(), myTau->p4()) <= 0.5) continue; 
+	  if(isOSCharge) {if(!(myMuon->charge() * myTau->charge() == -1)) continue;}
+	  if(!isOSCharge) {if(!(myMuon->charge() * myTau->charge() == 1)) continue;}
+	  chargereq++;
+	  myMT =  mTCalculation(*myMuon,Met);
 
-   for (pat::TauCollection::const_iterator tau = taus->begin();  tau != taus->end(); ++tau){                   
-     cout << "Tau pt " << tau->pt() << endl;
+	  if(isZtau) {if(myMT >= 40. ) continue; } 
+	  if(isZprime) {if(!(cos(TMath::Abs(normalizedPhi(myMuon->phi() - myTau->phi())))< -0.95)) continue; }
+	  mtcut++;
+	  float PZETA = PZeta(*myMuon, *myTau, Met);
+	  float PZETAvis = PZetaVis(*myMuon, *myTau);
+	  if(isZprime) {if(PZETA - 3.1*PZETAvis < -50) continue; }
+	  pzeta++;
+					
+	  if(BJetsinEvent(jetscollection, *myMuon,*myTau)) continue;
+	  //if(GenReq ) if(!(dR(genmuinfo.Eta(), genmuinfo.Phi(),myMuon->eta(),myMuon->phi()) < 0.5)) continue;//NO
+	  //if(GenReq ) if(!(dR(gentauinfo.Eta(), gentauinfo.Phi(),myTau->eta(),myTau->phi()) < 0.5)) continue;  //NO
+	  if(ExtraMuon(*myMuon, muons, *firstGoodVertex)) continue; 
 
-     tauptdis->Fill(tau->pt());
-     tauetadis->Fill(tau->eta());
-     tauphidis->Fill(tau->phi());
-     tauenergydis->Fill(tau->energy());
-     tauchdis->Fill(tau->charge());
+	  iselectron=false;
 
-   }                                                                                      
+	  //electron loop
+	  int nElec=0;
+	  for(edm::View<pat::Electron>::const_iterator el = electrons->begin(); el != electrons->end(); el++) {
+	    nElec++;
+	    /* 
+	    const Ptr<pat::Electron> elPtr(electron_pat, el - electron_pat->begin() );
+	    double mhits = el->gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
+	    
+	    if( (deltaR(myMuon->p4(), el->p4()) > 0.5) && (deltaR(myTau->p4(), el->p4()) > 0.5) &&  (el->pt() > 10) && (fabs(el->eta()) < 2.5) && (fabs(el->gsfTrack()->dz(firstGoodVertex->position())) < 0.2) && (fabs(el->gsfTrack()->dxy(firstGoodVertex->position())) < 0.045)) { 
+	      double combRelIsoPF = ((el->pfIsolationVariables().sumChargedHadronPt + max(el->pfIsolationVariables().sumNeutralHadronEt +el->pfIsolationVariables().sumPhotonEt - 0.5 * el->pfIsolationVariables().sumPUPt, 0.0))/el->pt());
+							if((*medium_id_decisions)[ elPtr ] == 1 && mhits <= 1) {
+							  if(combRelIsoPF < 0.3) {
+							    iselectron = true;
+							    break;
+							    
+							  }			
+							}
+			
 
-   for (pat::MuonCollection::const_iterator muon = muons->begin();  muon != muons->end(); ++muon){                   
+				}*/
+	  }// electron loop
+						
+	}// tau selection
+	
+      } // tau loop
+      
+    }// Mu selection
+  }// muon loop
+  if(muonid >= 1) hmuonid->Fill(1);
+  if(muoniso >= 1) hmuoniso->Fill(1);
+   
 
-     cout << "Muon pt " << muon->pt() << endl;
-     muptdis->Fill(muon->pt());
-     muetadis->Fill(muon->eta());
-     muphidis->Fill(muon->phi());
-     muenergydis->Fill(muon->energy());
-     muchdis->Fill(muon->charge());
+
+  for(edm::View<pat::Electron>::const_iterator electron = electrons->begin(); electron != electrons->end(); electron++) {
+    cout << "Electron pt " << electron->pt() << endl;
+    electronptdis->Fill(electron->pt());
+    electronetadis->Fill(electron->eta());
+    electronphidis->Fill(electron->phi());
+    electronenergydis->Fill(electron->energy());
+    electronchdis->Fill(electron->charge());
+  }
+
+
+
+  // Object Information (Jets, Tau, Electron, Muons)
+
+  for(edm::View<pat::Jet>::const_iterator jet=jets->begin(); jet!=jets->end(); ++jet){
+    cout << "Jet pt " << jet->pt() << endl;
+    jetptdis->Fill(jet->pt());
+    jetetadis->Fill(jet->eta());
+    jetphidis->Fill(jet->phi());
+    jetenergydis->Fill(jet->energy());
+    }
+
+  if (!jets.isValid()) {
+    edm::LogWarning("MiniAODAnalyzer") << "no pat::Jets (AK4) in event";
+    return;
+  }
+
+  for (pat::TauCollection::const_iterator tau = taus->begin();  tau != taus->end(); ++tau){                   
+    cout << "Tau pt " << tau->pt() << endl;
+
+    tauptdis->Fill(tau->pt());
+    tauetadis->Fill(tau->eta());
+    tauphidis->Fill(tau->phi());
+    tauenergydis->Fill(tau->energy());
+    tauchdis->Fill(tau->charge());
+
+  }                                                                                      
+
+  for (pat::MuonCollection::const_iterator muon = muons->begin();  muon != muons->end(); ++muon){                   
+
+    cout << "Muon pt " << muon->pt() << endl;
+    muptdis->Fill(muon->pt());
+    muetadis->Fill(muon->eta());
+    muphidis->Fill(muon->phi());
+    muenergydis->Fill(muon->energy());
+    muchdis->Fill(muon->charge());
                                                                
-   }                                                                                      
+  }                                                                                      
 
-   //MET
-   Met_type1PF_pt->Fill(met.pt());
-   Met_type1PF_px->Fill(met.px());
-   Met_type1PF_py->Fill(met.py());
-   Met_type1PF_pz->Fill(met.pz());
-   Met_type1PF_phi->Fill(met.phi());
-   Met_type1PF_sumEt->Fill(met.sumEt());  
+  //MET
    
 
-   /*
+  /*
 
-#ifdef THIS_IS_AN_EVENT_EXAMPLE
-   Handle<ExampleData> pIn;
-   iEvent.getByLabel("example",pIn);
-#endif
+    #ifdef THIS_IS_AN_EVENT_EXAMPLE
+    Handle<ExampleData> pIn;
+    iEvent.getByLabel("example",pIn);
+    #endif
    
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-   ESHandle<SetupData> pSetup;
-   iSetup.get<SetupRecord>().get(pSetup);
-#endif
-   */
+    #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
+    ESHandle<SetupData> pSetup;
+    iSetup.get<SetupRecord>().get(pSetup);
+    #endif
+  */
 }
 
 
@@ -402,12 +511,17 @@ MiniAODAnalyzer::beginJob()
 
 
   myTree = fs->make<TTree>("Tree","Tree");
+
+  hFillEventTau = fs->make<TH1F>("hFillEventTotal","hFillEventTotal",2,0,2);
+	
   //muon histos
   muptdis  = fs->make<TH1F>("muptdis","muptdis",500,0,2000);
   muetadis  = fs->make<TH1F>("muetadis","muetadis",20,-4,4);
   muphidis  = fs->make<TH1F>("muphidis","muphidis",20,-3.5,3.5);
   muenergydis  = fs->make<TH1F>("muenergydis","muenergydis",500,0,2000);
   muchdis  = fs->make<TH1F>("muchdis","muchdis",1,-2,2);
+  hmuonid = fs->make<TH1F>("hmuonid","hmuonid",2,0,2);
+  hmuoniso = fs->make<TH1F>("hmuoniso","hmuoniso",2,0,2);
   //jet histos
   jetptdis  = fs->make<TH1F>("jetptdis","jetptdis",500,0,2000);
   jetetadis  = fs->make<TH1F>("jetetadis","jetetadis",20,-4,4);
@@ -426,12 +540,12 @@ MiniAODAnalyzer::beginJob()
   electronenergydis  = fs->make<TH1F>("electronenergydis","electronenergydis",500,0,2000);
   electronchdis  = fs->make<TH1F>("electronchdis","electronchdis",4,-2,2);
   //MET histos
-   Met_type1PF_pt = fs->make<TH1F>("METptdis","METptdis",500,0,2000);
-   Met_type1PF_px = fs->make<TH1F>("METpt_x_dis","METpt_x_dis",500,0,2000);
-   Met_type1PF_py = fs->make<TH1F>("METpt_y_dis","METpt_y_dis",500,0,2000);
-   Met_type1PF_pz = fs->make<TH1F>("METpt_z_dis","METpt_z_dis",500,0,2000);
-   Met_type1PF_phi = fs->make<TH1F>("METphidis","METphidis",20,-3.5,3.5);
-   Met_type1PF_sumEt = fs->make<TH1F>("METenergydis","METenergydis",500,0,2000);
+  Met_type1PF_pt = fs->make<TH1F>("METptdis","METptdis",500,0,2000);
+  Met_type1PF_px = fs->make<TH1F>("METpt_x_dis","METpt_x_dis",500,0,2000);
+  Met_type1PF_py = fs->make<TH1F>("METpt_y_dis","METpt_y_dis",500,0,2000);
+  Met_type1PF_pz = fs->make<TH1F>("METpt_z_dis","METpt_z_dis",500,0,2000);
+  Met_type1PF_phi = fs->make<TH1F>("METphidis","METphidis",20,-3.5,3.5);
+  Met_type1PF_sumEt = fs->make<TH1F>("METenergydis","METenergydis",500,0,2000);
 
 
 }
@@ -458,159 +572,160 @@ DEFINE_FWK_MODULE(MiniAODAnalyzer);
 bool 
 MiniAODAnalyzer::isGoodVertex(const reco::Vertex& vtx)
 {      
-	if (vtx.isFake()) return false;
-	if (vtx.ndof() < 4.) return false;
-	if (vtx.position().Rho() > 2.) return false;
-	if (fabs(vtx.position().Z()) > 24) return false;
-	return true;
+  if (vtx.isFake()) return false;
+  if (vtx.ndof() < 4.) return false;
+  if (vtx.position().Rho() > 2.) return false;
+  if (fabs(vtx.position().Z()) > 24) return false;
+  return true;
 }   
 
 float MiniAODAnalyzer::mTCalculation(const pat::Muon& muobject, const pat::MET& metobject){
-	float mt = -1;
-	float pX = muobject.px()+metobject.px();
-	float pY = muobject.py()+metobject.py();
-	float et = muobject.et() + TMath::Sqrt(metobject.px()*metobject.px() + metobject.py()*metobject.py());
-	mt = TMath::Sqrt(et*et-(pX*pX + pY*pY));
-	return mt;
+  float mt = -1;
+  float pX = muobject.px()+metobject.px();
+  float pY = muobject.py()+metobject.py();
+  float et = muobject.et() + TMath::Sqrt(metobject.px()*metobject.px() + metobject.py()*metobject.py());
+  mt = TMath::Sqrt(et*et-(pX*pX + pY*pY));
+  return mt;
 }
 
 
 float MiniAODAnalyzer::PZetaVis(const pat::Muon& muobject, const pat::Tau& tauobject){
-	float pzetavis;
-	pzetavis = 999;
-	float zetax = TMath::Cos(muobject.phi()) + TMath::Cos(tauobject.phi()) ;
-	float zetay = TMath::Sin(muobject.phi()) + TMath::Sin(tauobject.phi()) ;
-	float zetaR = TMath::Sqrt(pow(zetax,2) + pow(zetay,2));
-	zetax = zetax/zetaR;
-	zetay = zetay/zetaR;
+  float pzetavis;
+  pzetavis = 999;
+  float zetax = TMath::Cos(muobject.phi()) + TMath::Cos(tauobject.phi()) ;
+  float zetay = TMath::Sin(muobject.phi()) + TMath::Sin(tauobject.phi()) ;
+  float zetaR = TMath::Sqrt(pow(zetax,2) + pow(zetay,2));
+  zetax = zetax/zetaR;
+  zetay = zetay/zetaR;
 
-	float visPx = muobject.px() + tauobject.px() ;
-	float visPy = muobject.py() + tauobject.py() ;
+  float visPx = muobject.px() + tauobject.px() ;
+  float visPy = muobject.py() + tauobject.py() ;
 
-	pzetavis = visPx*zetax + visPy*zetay;
-	return pzetavis;
+  pzetavis = visPx*zetax + visPy*zetay;
+  return pzetavis;
 
 }
 float MiniAODAnalyzer::PZeta(const pat::Muon& muobject, const pat::Tau& tauobject, const pat::MET& metobject){
-	float pzeta;
-	pzeta = 999;
-	float zetax = TMath::Cos(muobject.phi()) + TMath::Cos(tauobject.phi()) ;
-	float zetay = TMath::Sin(muobject.phi()) + TMath::Sin(tauobject.phi()) ;
-	float zetaR = TMath::Sqrt(pow(zetax,2) + pow(zetay,2));
-	zetax = zetax/zetaR;
-	zetay = zetay/zetaR;
+  float pzeta;
+  pzeta = 999;
+  float zetax = TMath::Cos(muobject.phi()) + TMath::Cos(tauobject.phi()) ;
+  float zetay = TMath::Sin(muobject.phi()) + TMath::Sin(tauobject.phi()) ;
+  float zetaR = TMath::Sqrt(pow(zetax,2) + pow(zetay,2));
+  zetax = zetax/zetaR;
+  zetay = zetay/zetaR;
 
-	float vPx = muobject.px() + tauobject.px()+metobject.px() ;
-	float vPy = muobject.py() + tauobject.py()+metobject.py() ;
+  float vPx = muobject.px() + tauobject.px()+metobject.px() ;
+  float vPy = muobject.py() + tauobject.py()+metobject.py() ;
 
-	pzeta = vPx*zetax + vPy*zetay;
-	return pzeta;
+  pzeta = vPx*zetax + vPy*zetay;
+  return pzeta;
 
 
 }
 
 bool MiniAODAnalyzer::TauSelection( const pat::Tau &myTau, const reco::Vertex &vtx){
 
-	if(myTau.pt() <= TauPtCut ) return false;
-	if(fabs(myTau.eta()) >= TauEtaCut ) return false;
-	if(myTau.tauID(TauDMF) < 0.5) return false;
-	if(myTau.tauID(TauMuVeto) < 0.5) return false;
-	if(myTau.tauID(TauEleVeto) < 0.5 ) return false;
-	if(myTau.tauID(TauIsoString) < 0.5 ) return false;
-//	if(myTau.tauID(TauIsoString) >= TauIsoCutMax) return false;
-//	if(myTau.tauID(TauIsoString) < TauIsoCutMin) return false; 
-	if(!(myTau.leadChargedHadrCand().isNonnull() && myTau.leadChargedHadrCand()->pt() > 5.)) return false;
-	pat::PackedCandidate const* packedLeadTauCand = dynamic_cast<pat::PackedCandidate const*>(myTau.leadChargedHadrCand().get());
-	if(!(fabs(packedLeadTauCand->dz(vtx.position())) < 0.2)) return false;
-	if(!(fabs(packedLeadTauCand->dxy(vtx.position())) < 0.045)) return false;
-	return true;
+  if(myTau.pt() <= TauPtCut ) return false;
+  if(fabs(myTau.eta()) >= TauEtaCut ) return false;
+  if(myTau.tauID(TauDMF) < 0.5) return false;
+  if(myTau.tauID(TauMuVeto) < 0.5) return false;
+  if(myTau.tauID(TauEleVeto) < 0.5 ) return false;
+  if(myTau.tauID(TauIsoString) < 0.5 ) return false;
+  //	if(myTau.tauID(TauIsoString) >= TauIsoCutMax) return false;
+  //	if(myTau.tauID(TauIsoString) < TauIsoCutMin) return false; 
+  if(!(myTau.leadChargedHadrCand().isNonnull() && myTau.leadChargedHadrCand()->pt() > 5.)) return false;
+  pat::PackedCandidate const* packedLeadTauCand = dynamic_cast<pat::PackedCandidate const*>(myTau.leadChargedHadrCand().get());
+  if(!(fabs(packedLeadTauCand->dz(vtx.position())) < 0.2)) return false;
+  if(!(fabs(packedLeadTauCand->dxy(vtx.position())) < 0.045)) return false;
+  return true;
 } 
 
 
 bool MiniAODAnalyzer::MuSelection( const pat::Muon &myMuon, const reco::Vertex &vtx ) {
 
-	if(myMuon.pt() <= MuonPtCut) return false;
-	if(fabs(myMuon.eta()) >=MuonEtaCut) return false;
-	if(!(myMuon.isMediumMuon())) return false;
-	if(!(myMuon.isPFMuon())) return false;
-	if(!(fabs(myMuon.muonBestTrack()->dz(vtx.position())) < 0.2)) return false;
-	if(!(fabs(myMuon.muonBestTrack()->dxy(vtx.position())) < 0.045)) return false;
-	double iso = ((myMuon.pfIsolationR03().sumChargedHadronPt + max(myMuon.pfIsolationR03().sumNeutralHadronEt  + myMuon.pfIsolationR03().sumPhotonEt - 0.5 * myMuon.pfIsolationR03().sumPUPt, 0.0))/myMuon.pt());
+  if(myMuon.pt() <= MuonPtCut) return false;
+  if(fabs(myMuon.eta()) >=MuonEtaCut) return false;
+  if(!(myMuon.isMediumMuon())) return false;
+  if(!(myMuon.isPFMuon())) return false;
+  if(!(fabs(myMuon.muonBestTrack()->dz(vtx.position())) < 0.2)) return false;
+  if(!(fabs(myMuon.muonBestTrack()->dxy(vtx.position())) < 0.045)) return false;
+  double iso = ((myMuon.pfIsolationR03().sumChargedHadronPt + max(myMuon.pfIsolationR03().sumNeutralHadronEt  + myMuon.pfIsolationR03().sumPhotonEt - 0.5 * myMuon.pfIsolationR03().sumPUPt, 0.0))/myMuon.pt());
 
-	if(iso >= IsoMuonMax)  return false;
-	return true; 
+  if(iso >= IsoMuonMax)  return false;
+  return true; 
 
 }
 
 bool MiniAODAnalyzer::ExtraMuon(const pat::Muon& muobject, edm::Handle<pat::MuonCollection> muons, const reco::Vertex &vtx){
-	bool ismuon;   
-	ismuon = false;
-	for (pat::MuonCollection::const_iterator myMuon = muons->begin(); myMuon != muons->end(); ++myMuon) { 
-		if(!(myMuon->pt() > 15.)) continue;
-		if(fabs(myMuon->eta()) > 2.4) continue;
-		if((deltaR(myMuon->p4(), muobject.p4()) < 0.5)) continue;
-		if(!(muobject.charge() * myMuon->charge() < 0)) continue;
-		if(!(fabs(myMuon->muonBestTrack()->dz(vtx.position())) < 0.2)) continue;
-		if(!(fabs(myMuon->muonBestTrack()->dxy(vtx.position())) < 0.045)) continue;
-		double iso = ((myMuon->pfIsolationR03().sumChargedHadronPt + max(myMuon->pfIsolationR03().sumNeutralHadronEt  + myMuon->pfIsolationR03().sumPhotonEt - 0.5 * myMuon->pfIsolationR03().sumPUPt, 0.0))/myMuon->pt());
-		if(iso < 0.3 && myMuon->isTrackerMuon() && myMuon->isPFMuon() && myMuon->isGlobalMuon()){
+  bool ismuon;   
+  ismuon = false;
+  for (pat::MuonCollection::const_iterator myMuon = muons->begin(); myMuon != muons->end(); ++myMuon) { 
+    if(!(myMuon->pt() > 15.)) continue;
+    if(fabs(myMuon->eta()) > 2.4) continue;
+    if((deltaR(myMuon->p4(), muobject.p4()) < 0.5)) continue;
+    if(!(muobject.charge() * myMuon->charge() < 0)) continue;
+    if(!(fabs(myMuon->muonBestTrack()->dz(vtx.position())) < 0.2)) continue;
+    if(!(fabs(myMuon->muonBestTrack()->dxy(vtx.position())) < 0.045)) continue;
+    double iso = ((myMuon->pfIsolationR03().sumChargedHadronPt + max(myMuon->pfIsolationR03().sumNeutralHadronEt  + myMuon->pfIsolationR03().sumPhotonEt - 0.5 * myMuon->pfIsolationR03().sumPUPt, 0.0))/myMuon->pt());
+    if(iso < 0.3 && myMuon->isTrackerMuon() && myMuon->isPFMuon() && myMuon->isGlobalMuon()){
 
-			ismuon =  true;
+      ismuon =  true;
 
-		}  
-	}
+    }  
+  }
 	          
-	return ismuon;
+  return ismuon;
 }    
 
-bool MiniAODAnalyzer::BJetsinEvent( edm::Handle<pat::JetCollection> myjets, const pat::Muon &myMuon, const pat::Tau &myTau){
-	bool isbjet = false;
-	for(pat::JetCollection::const_iterator ijet = myjets->begin() ; ijet != myjets->end() ; ijet++){
+//bool MiniAODAnalyzer::BJetsinEvent(edm::Handle<edm::View<pat::Jet> > myjets, const pat::Muon &myMuon, const pat::Tau &myTau){
+bool MiniAODAnalyzer::BJetsinEvent(edm::Handle<pat::JetCollection> myjets, const pat::Muon &myMuon, const pat::Tau &myTau){
+  bool isbjet = false;
+  for(pat::JetCollection::const_iterator ijet = myjets->begin() ; ijet != myjets->end() ; ijet++){
 
-		double _bdiscr2 = ijet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-		//PF jet ID
-		float NHF = ijet->neutralHadronEnergyFraction();
-		float NEMF = ijet->neutralEmEnergyFraction();
-		float CHF = ijet->chargedHadronEnergyFraction();
-		float MUF = ijet->muonEnergyFraction();
-		float CEMF = ijet->chargedEmEnergyFraction();
-		int NumNeutralParticles =ijet->neutralMultiplicity();
-		int NumConst = ijet->chargedMultiplicity()+NumNeutralParticles;
-		float CHM = ijet->chargedMultiplicity();
-		float absjeta = fabs(ijet->eta());
+    double _bdiscr2 = ijet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+    //PF jet ID
+    float NHF = ijet->neutralHadronEnergyFraction();
+    float NEMF = ijet->neutralEmEnergyFraction();
+    float CHF = ijet->chargedHadronEnergyFraction();
+    float MUF = ijet->muonEnergyFraction();
+    float CEMF = ijet->chargedEmEnergyFraction();
+    int NumNeutralParticles =ijet->neutralMultiplicity();
+    int NumConst = ijet->chargedMultiplicity()+NumNeutralParticles;
+    float CHM = ijet->chargedMultiplicity();
+    float absjeta = fabs(ijet->eta());
 
-		bool jetid1;
+    bool jetid1;
 
-		jetid1 = false;
+    jetid1 = false;
 
-		if(absjeta<=3.0){
+    if(absjeta<=3.0){
 
-			if( (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((absjeta<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || absjeta>2.4) ) {
+      if( (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((absjeta<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || absjeta>2.4) ) {
 
-				if( (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((absjeta<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || absjeta>2.4)){
+	if( (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((absjeta<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || absjeta>2.4)){
 
-					jetid1 = true;
+	  jetid1 = true;
 
-				}
-
-			}
-
-		}else{
-
-			if(NEMF<0.90 && NumNeutralParticles>10 ){
-
-				jetid1 = true;      
-
-			}
-
-		}   
-
-
-
-		if(ijet->pt() > 30. && fabs(ijet->eta()) < 2.4 &&( jetid1 ) && _bdiscr2 > 0.890 && (deltaR(ijet->p4(),myTau.p4()) > 0.5) && (deltaR(ijet->p4(),myMuon.p4()) > 0.5)) {
-
-			isbjet = true;
-		}
 	}
-	return isbjet;
+
+      }
+
+    }else{
+
+      if(NEMF<0.90 && NumNeutralParticles>10 ){
+
+	jetid1 = true;      
+
+      }
+
+    }   
+
+
+
+    if(ijet->pt() > 30. && fabs(ijet->eta()) < 2.4 &&( jetid1 ) && _bdiscr2 > 0.890 && (deltaR(ijet->p4(),myTau.p4()) > 0.5) && (deltaR(ijet->p4(),myMuon.p4()) > 0.5)) {
+
+      isbjet = true;
+    }
+  }
+  return isbjet;
 }

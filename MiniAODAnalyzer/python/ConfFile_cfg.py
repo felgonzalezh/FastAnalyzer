@@ -60,8 +60,14 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  HLTPath2 =  cms.string( "HLT_IsoMu17_eta2p1_MediumIsoPFTau40_Trk1_eta2p1_Reg_v3"),
                                  HLTFilter2a = cms.string( "hltL3crIsoL1sMu16erTauJet20erL1f0L2f10QL3f17QL3trkIsoFiltered0p09" ),
                                  HLTFilter2b = cms.string( "hltOverlapFilterIsoMu17MediumIsoPFTau40Reg" ),
-         
-                                 # input tags 
+
+                                 # samples input tag
+                                 isMC = cms.bool(False),
+                                 isZtau  = cms.bool(True),
+                                 isZprime  = cms.bool(False),
+                                 GenReq = cms.bool(False),
+
+                                 # objects input tags 
                                  muons               = cms.InputTag("slimmedMuons"),
                                  jets                = cms.InputTag("slimmedJets"),
                                  taus                = cms.InputTag("slimmedTaus"),
