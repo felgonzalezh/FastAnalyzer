@@ -203,7 +203,8 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
   triggerPrescalesL1min_ = consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("l1min"));
 
   //Trigger Paths
-  HLTPath1 = iConfig.getParameter<string>("HLTPath1");
+  //  HLTPath1 = iConfig.getParameter<string>("HLTPath1");
+
   /*  HLTFilter1a = iConfig.getParameter<string>("HLTFilter1a");
   HLTFilter1b = iConfig.getParameter<string>("HLTFilter1b");
   HLTPath2 = iConfig.getParameter<string>("HLTPath2");
@@ -298,7 +299,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      electronenergydis->Fill(electron->energy());
      electronchdis->Fill(electron->charge());
    }
-
+   /*
    //Trigger Information
    bool trigfired = false;
    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
@@ -307,7 +308,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      if((names.triggerName(i) == HLTPath1) && (triggerBits->accept(i) == 1)) {trigfired = true;} 
    }
    if(!(trigfired)) return;
-
+   */
 
    // Object Information (Jets, Tau, Electron, Muons)
    for(edm::View<pat::Jet>::const_iterator jet=jets->begin(); jet!=jets->end(); ++jet){

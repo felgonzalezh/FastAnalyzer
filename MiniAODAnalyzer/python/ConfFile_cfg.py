@@ -21,7 +21,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_Prompt_v8', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100000) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -54,7 +54,7 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  eleHEEPIdMap        = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
 
                                  #Trigger Paths
-                                 HLTPath1 =  cms.string( "HLT_IsoMu20_v4"),  #HLT_IsoMu24_eta2p1_v1" ),
+#                                 HLTPath1 =  cms.string( "HLT_IsoMu20_v4"),  #HLT_IsoMu24_eta2p1_v1" ),
          
                                  # input tags 
                                  muons               = cms.InputTag("slimmedMuons"),
