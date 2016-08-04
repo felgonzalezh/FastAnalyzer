@@ -141,11 +141,11 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> trigger_objects;
 
   //Trigger Paths
-  string HLTPath1;/* HLTFilter1a, HLTFilter1b;
+  string HLTPath1, HLTFilter1a, HLTFilter1b;
   string HLTPath2, HLTFilter2a,HLTFilter2b,HLTFilter2c,HLTFilter2d;   
   string HLTPath3, HLTFilter3a, HLTFilter3b;
-  string HLTPath4 , HLTFilter4a, HLTFilter4b;  	
-		  */
+  string HLTPath4, HLTFilter4a, HLTFilter4b;  	
+		 
   // Muon histos;
   TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis;
   //Jet histos
@@ -157,6 +157,22 @@ class MiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  
   //MET
   TH1F *Met_type1PF_pt,*Met_type1PF_px, *Met_type1PF_py,*Met_type1PF_pz,*Met_type1PF_phi,*Met_type1PF_sumEt; 
    
+  //cut values
+  double TauPtCut,TauEtaCut,TauIsoCutMax,TauIsoCutMin, MuonPtCut, MuonEtaCut, IsoMuonMax, MotherpdgID;
+  string TauDMF,TauEleVeto,TauMuVeto,TauIsoString;
+  bool isOSCharge;
+  
+
+  //Cut functions  
+  float mTCalculation(const pat::Muon& muobject, const pat::MET& metobject);
+  float PZetaVis(const pat::Muon& muobject, const pat::Tau& tauobject);
+  float PZeta(const pat::Muon& muobject, const pat::Tau& tauobject, const pat::MET& metobject);
+  bool TauSelection( const pat::Tau &myTau, const reco::Vertex &vtx );
+  bool MuSelection( const pat::Muon &myMuon, const reco::Vertex &vtx );
+  bool ExtraMuon(const pat::Muon& muobject, edm::Handle<pat::MuonCollection> muons, const reco::Vertex &vtx);
+  bool BJetsinEvent( edm::Handle<pat::JetCollection> myjets,  const pat::Muon &myMuon, const pat::Tau &myTau);
+  bool matchedTrigger1, matchedTrigger2 ;
+
   TTree *myTree;
   double totalweight;
 };
@@ -203,17 +219,26 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
   triggerPrescalesL1min_ = consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("l1min"));
 
   //Trigger Paths
-  //  HLTPath1 = iConfig.getParameter<string>("HLTPath1");
-
-  /*  HLTFilter1a = iConfig.getParameter<string>("HLTFilter1a");
+  HLTPath1 = iConfig.getParameter<string>("HLTPath1");
+  HLTFilter1a = iConfig.getParameter<string>("HLTFilter1a");
   HLTFilter1b = iConfig.getParameter<string>("HLTFilter1b");
   HLTPath2 = iConfig.getParameter<string>("HLTPath2");
   HLTFilter2a = iConfig.getParameter<string>("HLTFilter2a");
   HLTFilter2b = iConfig.getParameter<string>("HLTFilter2b");
-  */
-
-
-   //now do what ever initialization is needed
+  
+  //cut values
+  TauPtCut = iConfig.getParameter<double>("TauPtCut");
+  TauEtaCut  = iConfig.getParameter<double>("TauEtaCut");
+  TauDMF  = iConfig.getParameter<string>("TauDMF");
+  TauEleVeto = iConfig.getParameter<string>("TauEleVeto");
+  TauMuVeto = iConfig.getParameter<string>("TauMuVeto");
+  TauIsoString = iConfig.getParameter<string>("TauIsoString");
+  TauIsoCutMax = iConfig.getParameter<double>("TauIsoCutMax");
+  TauIsoCutMin= iConfig.getParameter<double>("TauIsoCutMin");
+  isOSCharge = iConfig.getParameter<bool>("isOSCharge");
+  MuonPtCut = iConfig.getParameter<double>("MuonPtCut");
+  MuonEtaCut = iConfig.getParameter<double>("MuonEtaCut");
+  IsoMuonMax  = iConfig.getParameter<double>("IsoMuonMax");
 
 }
 
@@ -439,3 +464,153 @@ MiniAODAnalyzer::isGoodVertex(const reco::Vertex& vtx)
 	if (fabs(vtx.position().Z()) > 24) return false;
 	return true;
 }   
+
+float MiniAODAnalyzer::mTCalculation(const pat::Muon& muobject, const pat::MET& metobject){
+	float mt = -1;
+	float pX = muobject.px()+metobject.px();
+	float pY = muobject.py()+metobject.py();
+	float et = muobject.et() + TMath::Sqrt(metobject.px()*metobject.px() + metobject.py()*metobject.py());
+	mt = TMath::Sqrt(et*et-(pX*pX + pY*pY));
+	return mt;
+}
+
+
+float MiniAODAnalyzer::PZetaVis(const pat::Muon& muobject, const pat::Tau& tauobject){
+	float pzetavis;
+	pzetavis = 999;
+	float zetax = TMath::Cos(muobject.phi()) + TMath::Cos(tauobject.phi()) ;
+	float zetay = TMath::Sin(muobject.phi()) + TMath::Sin(tauobject.phi()) ;
+	float zetaR = TMath::Sqrt(pow(zetax,2) + pow(zetay,2));
+	zetax = zetax/zetaR;
+	zetay = zetay/zetaR;
+
+	float visPx = muobject.px() + tauobject.px() ;
+	float visPy = muobject.py() + tauobject.py() ;
+
+	pzetavis = visPx*zetax + visPy*zetay;
+	return pzetavis;
+
+}
+float MiniAODAnalyzer::PZeta(const pat::Muon& muobject, const pat::Tau& tauobject, const pat::MET& metobject){
+	float pzeta;
+	pzeta = 999;
+	float zetax = TMath::Cos(muobject.phi()) + TMath::Cos(tauobject.phi()) ;
+	float zetay = TMath::Sin(muobject.phi()) + TMath::Sin(tauobject.phi()) ;
+	float zetaR = TMath::Sqrt(pow(zetax,2) + pow(zetay,2));
+	zetax = zetax/zetaR;
+	zetay = zetay/zetaR;
+
+	float vPx = muobject.px() + tauobject.px()+metobject.px() ;
+	float vPy = muobject.py() + tauobject.py()+metobject.py() ;
+
+	pzeta = vPx*zetax + vPy*zetay;
+	return pzeta;
+
+
+}
+
+bool MiniAODAnalyzer::TauSelection( const pat::Tau &myTau, const reco::Vertex &vtx){
+
+	if(myTau.pt() <= TauPtCut ) return false;
+	if(fabs(myTau.eta()) >= TauEtaCut ) return false;
+	if(myTau.tauID(TauDMF) < 0.5) return false;
+	if(myTau.tauID(TauMuVeto) < 0.5) return false;
+	if(myTau.tauID(TauEleVeto) < 0.5 ) return false;
+	if(myTau.tauID(TauIsoString) < 0.5 ) return false;
+//	if(myTau.tauID(TauIsoString) >= TauIsoCutMax) return false;
+//	if(myTau.tauID(TauIsoString) < TauIsoCutMin) return false; 
+	if(!(myTau.leadChargedHadrCand().isNonnull() && myTau.leadChargedHadrCand()->pt() > 5.)) return false;
+	pat::PackedCandidate const* packedLeadTauCand = dynamic_cast<pat::PackedCandidate const*>(myTau.leadChargedHadrCand().get());
+	if(!(fabs(packedLeadTauCand->dz(vtx.position())) < 0.2)) return false;
+	if(!(fabs(packedLeadTauCand->dxy(vtx.position())) < 0.045)) return false;
+	return true;
+} 
+
+
+bool MiniAODAnalyzer::MuSelection( const pat::Muon &myMuon, const reco::Vertex &vtx ) {
+
+	if(myMuon.pt() <= MuonPtCut) return false;
+	if(fabs(myMuon.eta()) >=MuonEtaCut) return false;
+	if(!(myMuon.isMediumMuon())) return false;
+	if(!(myMuon.isPFMuon())) return false;
+	if(!(fabs(myMuon.muonBestTrack()->dz(vtx.position())) < 0.2)) return false;
+	if(!(fabs(myMuon.muonBestTrack()->dxy(vtx.position())) < 0.045)) return false;
+	double iso = ((myMuon.pfIsolationR03().sumChargedHadronPt + max(myMuon.pfIsolationR03().sumNeutralHadronEt  + myMuon.pfIsolationR03().sumPhotonEt - 0.5 * myMuon.pfIsolationR03().sumPUPt, 0.0))/myMuon.pt());
+
+	if(iso >= IsoMuonMax)  return false;
+	return true; 
+
+}
+
+bool MiniAODAnalyzer::ExtraMuon(const pat::Muon& muobject, edm::Handle<pat::MuonCollection> muons, const reco::Vertex &vtx){
+	bool ismuon;   
+	ismuon = false;
+	for (pat::MuonCollection::const_iterator myMuon = muons->begin(); myMuon != muons->end(); ++myMuon) { 
+		if(!(myMuon->pt() > 15.)) continue;
+		if(fabs(myMuon->eta()) > 2.4) continue;
+		if((deltaR(myMuon->p4(), muobject.p4()) < 0.5)) continue;
+		if(!(muobject.charge() * myMuon->charge() < 0)) continue;
+		if(!(fabs(myMuon->muonBestTrack()->dz(vtx.position())) < 0.2)) continue;
+		if(!(fabs(myMuon->muonBestTrack()->dxy(vtx.position())) < 0.045)) continue;
+		double iso = ((myMuon->pfIsolationR03().sumChargedHadronPt + max(myMuon->pfIsolationR03().sumNeutralHadronEt  + myMuon->pfIsolationR03().sumPhotonEt - 0.5 * myMuon->pfIsolationR03().sumPUPt, 0.0))/myMuon->pt());
+		if(iso < 0.3 && myMuon->isTrackerMuon() && myMuon->isPFMuon() && myMuon->isGlobalMuon()){
+
+			ismuon =  true;
+
+		}  
+	}
+	          
+	return ismuon;
+}    
+
+bool MiniAODAnalyzer::BJetsinEvent( edm::Handle<pat::JetCollection> myjets, const pat::Muon &myMuon, const pat::Tau &myTau){
+	bool isbjet = false;
+	for(pat::JetCollection::const_iterator ijet = myjets->begin() ; ijet != myjets->end() ; ijet++){
+
+		double _bdiscr2 = ijet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+		//PF jet ID
+		float NHF = ijet->neutralHadronEnergyFraction();
+		float NEMF = ijet->neutralEmEnergyFraction();
+		float CHF = ijet->chargedHadronEnergyFraction();
+		float MUF = ijet->muonEnergyFraction();
+		float CEMF = ijet->chargedEmEnergyFraction();
+		int NumNeutralParticles =ijet->neutralMultiplicity();
+		int NumConst = ijet->chargedMultiplicity()+NumNeutralParticles;
+		float CHM = ijet->chargedMultiplicity();
+		float absjeta = fabs(ijet->eta());
+
+		bool jetid1;
+
+		jetid1 = false;
+
+		if(absjeta<=3.0){
+
+			if( (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((absjeta<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || absjeta>2.4) ) {
+
+				if( (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((absjeta<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || absjeta>2.4)){
+
+					jetid1 = true;
+
+				}
+
+			}
+
+		}else{
+
+			if(NEMF<0.90 && NumNeutralParticles>10 ){
+
+				jetid1 = true;      
+
+			}
+
+		}   
+
+
+
+		if(ijet->pt() > 30. && fabs(ijet->eta()) < 2.4 &&( jetid1 ) && _bdiscr2 > 0.890 && (deltaR(ijet->p4(),myTau.p4()) > 0.5) && (deltaR(ijet->p4(),myMuon.p4()) > 0.5)) {
+
+			isbjet = true;
+		}
+	}
+	return isbjet;
+}

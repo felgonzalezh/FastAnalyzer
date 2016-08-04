@@ -21,7 +21,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_Prompt_v8', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -54,7 +54,12 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  eleHEEPIdMap        = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
 
                                  #Trigger Paths
-#                                 HLTPath1 =  cms.string( "HLT_IsoMu20_v4"),  #HLT_IsoMu24_eta2p1_v1" ),
+                                 HLTPath1 =  cms.string( "HLT_IsoMu20_v4"),  #HLT_IsoMu24_eta2p1_v1" ),
+                                 HLTFilter1a= cms.string( "hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p09"),
+                                 HLTFilter1b= cms.string( "hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p09"),
+                                 HLTPath2 =  cms.string( "HLT_IsoMu17_eta2p1_MediumIsoPFTau40_Trk1_eta2p1_Reg_v3"),
+                                 HLTFilter2a = cms.string( "hltL3crIsoL1sMu16erTauJet20erL1f0L2f10QL3f17QL3trkIsoFiltered0p09" ),
+                                 HLTFilter2b = cms.string( "hltOverlapFilterIsoMu17MediumIsoPFTau40Reg" ),
          
                                  # input tags 
                                  muons               = cms.InputTag("slimmedMuons"),
@@ -64,13 +69,27 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  vertices            = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                  mets                = cms.InputTag("slimmedMETs"),
 
+                                 #Trigger Input Tag
                                  triggerBits                = cms.InputTag("TriggerResults","","HLT"),
                                  trigger_prescale           = cms.InputTag("patTrigger"),
                                  triggerObjects             = cms.InputTag("selectedPatTrigger"),			  
                                  l1min = cms.InputTag("patTrigger","l1min"),
-                                 l1max = cms.InputTag("patTrigger","l1max")           
-  
-
+                                 l1max = cms.InputTag("patTrigger","l1max"),           
+                                 
+                                 #Cut values
+                                 isOSCharge = cms.bool(True),     
+                                 TauPtCut = cms.double(20.0),
+                                 TauEtaCut = cms.double(2.1),
+                                 TauDMF = cms.string("decayModeFinding"),
+                                 TauEleVeto = cms.string("againstElectronVLooseMVA5"),
+                                 TauMuVeto = cms.string("againstMuonTight3"),
+                                 TauIsoString = cms.string("byLooseCombinedIsolationDeltaBetaCorr3Hits"),
+                                 DYOthersBG = cms.bool(False),
+                                 TauIsoCutMax = cms.double(99999),
+                                 TauIsoCutMin = cms.double(0.5),
+                                 MuonPtCut = cms.double(19.0),
+                                 MuonEtaCut = cms.double(2.1),
+                                 IsoMuonMax = cms.double(0.1),
 )
 
 
