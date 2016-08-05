@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-#process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
@@ -13,9 +13,16 @@ process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('TrackingTools.TransientTrack.TransientTrackBuilder_cfi')
 process.load("Configuration.StandardSequences.MagneticField_38T_PostLS1_cff")
 
+#process.load("Configuration.StandardSequences.GeometryConf")
+
 #needs to be commented out or else it complains about: 'two EventSetup Producers want to deliver type="CaloSubdetectorGeometry" label="ZDC"'
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+
+#process.load("Geometry.CMSCommonData.cmsIdealGeometryXML_cfi");
+#process.load("Geometry.CaloEventSetup.CaloGeometry_cfi");
+#process.load("Geometry.CaloEventSetup.CaloTopology_cfi");
+#process.load("Configuration.Geometry.GeometryECALHCAL_cff")
 
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_Prompt_v8', '')
@@ -28,6 +35,13 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
        # 'root://cms-xrd-global.cern.ch///store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root'
         '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root'
+#       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/02D9C19F-571A-E611-AD8E-02163E013732.root',
+#       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/18383F36-2E1A-E611-8C57-02163E014186.root',
+#       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/1AF0711C-241A-E611-AC07-02163E0141E1.root',
+#       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/2096A6AC-261A-E611-99BD-02163E01355E.root'
+
+#        '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root',
+ #       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/02D9C19F-571A-E611-AD8E-02163E013732.root'
     )
 )
 
@@ -54,12 +68,12 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  eleHEEPIdMap        = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
 
                                  #Trigger Paths
-                                 HLTPath1 =  cms.string( "HLT_IsoMu20_v4"),  #HLT_IsoMu24_eta2p1_v1" ),
-                                 HLTFilter1a= cms.string( "hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p09"),
-                                 HLTFilter1b= cms.string( "hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p09"),
-                                 HLTPath2 =  cms.string( "HLT_IsoMu19_eta2p1_MediumIsoPFTau32_Trk1_eta2p1_Reg_v2" ), #"HLT_IsoMu17_eta2p1_MediumIsoPFTau40_Trk1_eta2p1_Reg_v3"),
-                                 HLTFilter2a = cms.string( "hltL3crIsoL1sMu16erTauJet20erL1f0L2f10QL3f17QL3trkIsoFiltered0p09" ),
-                                 HLTFilter2b = cms.string( "hltOverlapFilterIsoMu17MediumIsoPFTau40Reg" ),
+                                 HLTPath1 =  cms.string( "HLT_IsoMu18_v2" ),#"HLT_IsoMu20_v4"),  #HLT_IsoMu24_eta2p1_v1" ),
+                                 HLTFilter1a= cms.string( "hltL3crIsoL1sSingleMu16erL1f0L2f10QL3f17QL3trkIsoFiltered0p09"),#hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p09"),
+                                 HLTFilter1b= cms.string( "hltL3crIsoL1sSingleMu16erL1f0L2f10QL3f17QL3trkIsoFiltered0p09"),#hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p09"),
+                                 HLTPath2 =  cms.string( "HLT_IsoMu19_eta2p1_MediumIsoPFTau32_Trk1_eta2p1_Reg_v2"),#HLT_IsoMu19_eta2p1_MediumIsoPFTau32_Trk1_eta2p1_Reg_v1)",#HLT_IsoMu19_eta2p1_MediumIsoPFTau32_Trk1_eta2p1_Reg_v2" ), #"HLT_IsoMu17_eta2p1_MediumIsoPFTau40_Trk1_eta2p1_Reg_v3"),
+                                 HLTFilter2a = cms.string( "hltL3crIsoL1sMu18erIsoTau26erL1f0L2f10QL3f19QL3trkIsoFiltered0p09"),#hltL3crIsoL1sMu16erTauJet20erL1f0L2f10QL3f17QL3trkIsoFiltered0p09" ),
+                                 HLTFilter2b = cms.string( "hltOverlapFilterIsoMu19L2IsoTau26"),#hltOverlapFilterIsoMu17MediumIsoPFTau40Reg" ),
 
                                  # samples input tag
                                  isMC = cms.bool(False),
@@ -84,16 +98,16 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  
                                  #Cut values
                                  isOSCharge = cms.bool(True),     
-                                 TauPtCut = cms.double(20.0),
+                                 TauPtCut = cms.double(16.0),
                                  TauEtaCut = cms.double(2.1),
                                  TauDMF = cms.string("decayModeFinding"),
-                                 TauEleVeto = cms.string("againstElectronVLooseMVA5"),
+                                 TauEleVeto = cms.string("againstElectronVLooseMVA6"),
                                  TauMuVeto = cms.string("againstMuonTight3"),
                                  TauIsoString = cms.string("byLooseCombinedIsolationDeltaBetaCorr3Hits"),
                                  DYOthersBG = cms.bool(False),
                                  TauIsoCutMax = cms.double(99999),
                                  TauIsoCutMin = cms.double(0.5),
-                                 MuonPtCut = cms.double(19.0),
+                                 MuonPtCut = cms.double(18.0),
                                  MuonEtaCut = cms.double(2.1),
                                  IsoMuonMax = cms.double(0.1),
 )

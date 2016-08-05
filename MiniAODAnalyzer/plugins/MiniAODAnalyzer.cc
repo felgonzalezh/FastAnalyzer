@@ -124,7 +124,8 @@ private:
   edm::EDGetTokenT<std::vector<pat::Muon> > theMuonToken;
   edm::EDGetTokenT<std::vector<pat::Tau> > theTauToken;
   edm::EDGetTokenT<edm::View<pat::Electron> > theElectronToken;
-  edm::EDGetTokenT<edm::View<pat::Jet> > theJetToken;
+  //  edm::EDGetTokenT<edm::View<pat::Jet> > theJetToken;
+  edm::EDGetTokenT<pat::JetCollection> theJetToken;
   edm::EDGetTokenT<reco::VertexCollection> vertexToken;  
 
   //Electron Token
@@ -155,24 +156,24 @@ private:
 		 
   //Samples
   bool isMC, isZtau, isZprime, GenReq ;double weightevt, sumweight, DYOthersBG;
+  //Gen Particles
+  unsigned int indexmuTau , indexTauh;
+  
 
   //Total Events
   TH1F *hFillEventTotal, *hFillEventMuon, *hFillEventTau;
-
   // Muon histos;
   TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis,*hmuonid, *hmuoniso;
-
-
   //Jet histos
-  TH1F *jetptdis,*jetetadis,*jetphidis,*jetenergydis;
+  //  TH1F *jetptdis,*jetetadis,*jetphidis,*jetenergydis;
   //Tau histos
   TH1F *tauptdis,*tauetadis,*tauphidis,*tauenergydis,*tauchdis,*htauid,*hFillPtDen,*hFillEtaDen,*hFillPtNum,*hFillEtaNum;
   TH2F *h2D_den,*h2D_num;
   //Electron histos
   bool iselectron;
-  TH1F *electronptdis,*electronetadis,*electronphidis,*electronenergydis,*electronchdis;
+  //  TH1F *electronptdis,*electronetadis,*electronphidis,*electronenergydis,*electronchdis;
   //MET
-  TH1F *Met_type1PF_pt,*Met_type1PF_px, *Met_type1PF_py,*Met_type1PF_pz,*Met_type1PF_phi,*Met_type1PF_sumEt; 
+  //  TH1F *Met_type1PF_pt,*Met_type1PF_px, *Met_type1PF_py,*Met_type1PF_pz,*Met_type1PF_phi,*Met_type1PF_sumEt; 
   //mas reconstruction and met
   TH1F *mutaumassdis, *mtdis;
   //vut histos
@@ -201,6 +202,11 @@ private:
   pair<bool, TLorentzVector> MuonMatchingToTrigObjects(const pat::Muon& myMuon, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects, const edm::TriggerNames &names,string filterName, string pathname);                 
   pair<vector<bool>,vector<pat::TriggerObjectStandAlone>> preTauMatchingToTrigObjects(const pat::Tau& myTau, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects, const edm::TriggerNames &names,string filterName, string pathname);      
   pair<bool, TLorentzVector> TauMatchingToTrigObjects(const pat::Tau& myTau, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects, const edm::TriggerNames &names,string filterName, string pathname, bool numerator); //numerator b
+
+
+  //MC Functions
+  bool IsFirstCopy (const reco::Candidate* part, const bool checkAbsPdg); 
+
 
   TTree *myTree;
   double totalweight;
@@ -234,8 +240,8 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
   //Object
   theMuonToken = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   theTauToken = consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("taus"));
-  theJetToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
-  //  theJetToken = consumes<pat::JetCollection> >(iConfig.getParameter<edm::InputTag>("jets"));
+  //theJetToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
+  theJetToken = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
   theElectronToken = consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
   //MET
   metToken_ = consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
@@ -307,15 +313,14 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   edm::Handle<pat::MuonCollection> muons;
   edm::Handle<pat::TauCollection> taus;
   edm::Handle<edm::View<pat::Electron> > electrons;
-  edm::Handle<edm::View<pat::Jet> > jets;
-  //  edm::Handle<edm::JetCollection > jets;
-  iEvent.getByToken(theJetToken, jets);
+  //  edm::Handle<edm::View<pat::Jet> > jets;
+  //iEvent.getByToken(theJetToken, jets);
   iEvent.getByToken(theMuonToken, muons); 
   iEvent.getByToken(theTauToken, taus);  
   iEvent.getByToken(theElectronToken, electrons);
 
-
   edm::Handle<pat::JetCollection> jetscollection;
+  iEvent.getByToken(theJetToken, jetscollection);
 
 
   //MET
@@ -363,26 +368,74 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       firstGoodVertex = it;
       break;
     }
+
+
   // require a good vertex 
   if (firstGoodVertex == vertices->end()) return;
-
+  /*
+  //MC Samples
+  if(isMC) {
+    
+    hFillEventTotal->Fill(1);
+    //////////////////////////////////////// weights ///////////////////////////////
+    edm::Handle<GenEventInfoProduct> genEvt;
+    iEvent.getByLabel("generator",genEvt);
+    weightevt=genEvt->weight();
+    sumweight = sumweight+weightevt;
+    //		cout<<"weightevt"<<weightevt<<endl;
+    edm::Handle<edm::View<reco::GenParticle> > pruned;  
+    iEvent.getByLabel("prunedGenParticles",pruned); 
+    unsigned int Ngen = pruned->size();
+    indexmuTau = indexTauh = 0;
+    int muhad;
+    muhad=0;
+    //GenParticles loop
+    for (unsigned int iGen = 0; iGen < Ngen; iGen++){
+      
+      const GenParticle& genP = (*pruned)[iGen];
+      //			std::cout<<"genP" << genP.pt()<<std::endl;
+      //muon selection
+      if(fabs(genP.pdgId()) == 13) {
+	// is the muon a final state from tau?
+	if(genP.isDirectPromptTauDecayProductFinalState()) {
+	  const reco::Candidate *Moth = genP.mother(0);
+	  if(fabs(Moth->mother(0)->pdgId()) == MotherpdgID){
+	    const reco::Candidate *Moth = genP.mother(0);
+	    if(IsFirstCopy (Moth,true)) { 
+	      muhad++;                
+	      genmuinfo.SetPtEtaPhiM(genP.pt(),genP.eta(),genP.phi(),genP.mass());
+	    }
+	  }// else {
+			
+	}// muon from tau
+      }// muon selection
+    }// Genparticle loop
+  }// MC Samples
+  */
+  //Testing
+		
   //Trigger Information
   bool trigfired = false;
+  //  std::cout << "\n === TRIGGER PATHS === " << std::endl;
   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-
   for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
-    if((names.triggerName(i) == HLTPath1) && (triggerBits->accept(i) == 1)) {trigfired = true;} 
+    //  std::cout << " Trigger === " << names.triggerName(i) << std::endl;
+    if((names.triggerName(i) == HLTPath1) && (triggerBits->accept(i) == 1)) {trigfired = true; }// cout << "The event was triggered" << endl;} 
   }
   if(!(trigfired)){
-    cout << "The event was not triggered" << endl;
-    return;
+     return;
   } 
-  hFillEventTau->Fill(1);  
+
+  hFillEventTotal->Fill(1);
+
+
 
   // NOW TRIGGER LEVEL INFORMATION
   //  bool isData = false;
   matchedTrigger1 = false;
   matchedTrigger2 = false;
+
+  weightevt=1;
    
   int muonid = 0;
   int muoniso = 0;
@@ -394,15 +447,15 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   int taumatch1 = 0;
   int taumatch2 = 0;
   
-
   // muon loop
   for (pat::MuonCollection::const_iterator myMuon = muons->begin(); myMuon != muons->end(); ++myMuon) {
-
+    hFillEventMuon ->Fill(1);
     if((MuSelection( *myMuon, *firstGoodVertex ))){
       muonid++;
       muoniso++;
       //tau loop 
-      for (pat::TauCollection::const_iterator myTau = taus->begin(); myTau != taus->end(); ++myTau) {                                                                                                   
+      for (pat::TauCollection::const_iterator myTau = taus->begin(); myTau != taus->end(); ++myTau) {                         
+	hFillEventTau->Fill(1);                                                                           
 	if((TauSelection(*myTau, *firstGoodVertex))) {
 	  tauid++;
 
@@ -419,7 +472,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	  float PZETAvis = PZetaVis(*myMuon, *myTau);
 	  if(isZprime) {if(PZETA - 3.1*PZETAvis < -50) continue; }
 	  pzeta++;
-					
+
 	  if(BJetsinEvent(jetscollection, *myMuon,*myTau)) continue;
 	  //if(GenReq ) if(!(dR(genmuinfo.Eta(), genmuinfo.Phi(),myMuon->eta(),myMuon->phi()) < 0.5)) continue;//NO
 	  //if(GenReq ) if(!(dR(gentauinfo.Eta(), gentauinfo.Phi(),myTau->eta(),myTau->phi()) < 0.5)) continue;  //NO
@@ -446,7 +499,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	      }
 	    }
 	  }// electron loop
-	  
+
 	  if(iselectron) continue;	
 	  // muon matches with trigger objects
 	  pair<bool, TLorentzVector> muonmatched;
@@ -458,16 +511,26 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	  hFillPtDen->Fill(myTau->pt(),weightevt);
 	  hFillEtaDen->Fill(myTau->eta(),weightevt);
 	  h2D_den->Fill(myTau->eta(),myTau->pt(),weightevt); 
+
 	  tauptdis->Fill(myTau->pt(),weightevt);
 	  tauetadis->Fill(myTau->eta(),weightevt);
+	  tauphidis->Fill(myTau->phi(),weightevt);
+	  tauenergydis->Fill(myTau->energy(),weightevt);
+	  tauchdis->Fill(myTau->charge(),weightevt);
+
 	  muptdis->Fill(myMuon->pt(),weightevt); 
 	  muetadis->Fill(myMuon->eta(),weightevt); 
+	  muphidis->Fill(myMuon->phi(),weightevt);
+	  muenergydis->Fill(myMuon->energy(),weightevt);
+	  muchdis->Fill(myMuon->charge(),weightevt);
+
 	  mutaumassdis->Fill((myTau->p4()+myMuon->p4()).M(),weightevt); 
 	  mtdis->Fill(myMT,weightevt); 
 
 	  //pre Tau matching
 	  pair<vector<bool>,vector<pat::TriggerObjectStandAlone> > taumatchedNum;
 	  taumatchedNum  = preTauMatchingToTrigObjects(*myTau,triggerObjects, names, HLTFilter2b, HLTPath2);
+	  taumatch1++; 
 	  
 	  vector<bool> firstPart; vector<pat::TriggerObjectStandAlone> secondPart;
 	  firstPart.clear(); secondPart.clear();
@@ -513,58 +576,6 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   if(muonmatch >= 1) hmuonmatch->Fill(1);
   if(taumatch1 >= 1) htaumatch1->Fill(1);
   if(taumatch2 >= 1) htaumatch2->Fill(1);
- 
-  for(edm::View<pat::Electron>::const_iterator electron = electrons->begin(); electron != electrons->end(); electron++) {
-    //    cout << "Electron pt " << electron->pt() << endl;
-    electronptdis->Fill(electron->pt());
-    electronetadis->Fill(electron->eta());
-    electronphidis->Fill(electron->phi());
-    electronenergydis->Fill(electron->energy());
-    electronchdis->Fill(electron->charge());
-  }
-
-
-
-  // Object Information (Jets, Tau, Electron, Muons)
-
-  for(edm::View<pat::Jet>::const_iterator jet=jets->begin(); jet!=jets->end(); ++jet){
-    //    cout << "Jet pt " << jet->pt() << endl;
-    jetptdis->Fill(jet->pt());
-    jetetadis->Fill(jet->eta());
-    jetphidis->Fill(jet->phi());
-    jetenergydis->Fill(jet->energy());
-  }
-
-  if (!jets.isValid()) {
-    edm::LogWarning("MiniAODAnalyzer") << "no pat::Jets (AK4) in event";
-    return;
-  }
-
-  for (pat::TauCollection::const_iterator tau = taus->begin();  tau != taus->end(); ++tau){                   
-    //    cout << "Tau pt " << tau->pt() << endl;
-
-    tauptdis->Fill(tau->pt());
-    tauetadis->Fill(tau->eta());
-    tauphidis->Fill(tau->phi());
-    tauenergydis->Fill(tau->energy());
-    tauchdis->Fill(tau->charge());
-
-  }                                                                                      
-
-  for (pat::MuonCollection::const_iterator muon = muons->begin();  muon != muons->end(); ++muon){                   
-
-    //    cout << "Muon pt " << muon->pt() << endl;
-    muptdis->Fill(muon->pt());
-    muetadis->Fill(muon->eta());
-    muphidis->Fill(muon->phi());
-    muenergydis->Fill(muon->energy());
-    muchdis->Fill(muon->charge());
-                                                               
-  }                                                                                      
-
-  //MET
-   
-
   /*
 
     #ifdef THIS_IS_AN_EVENT_EXAMPLE
@@ -593,8 +604,10 @@ MiniAODAnalyzer::beginJob()
   double a[]= {0,20,40,60,80,100,120,140,160,180,200,240,300};
   double b[] = {-2.1,-1.566,-1.442,-1.0,-0.5,0,0.5,1.0,1.442,1.566,2.1}; 
 
-
-  hFillEventTau = fs->make<TH1F>("hFillEventTotal","hFillEventTotal",2,0,2);
+  //events histos
+  hFillEventTau = fs->make<TH1F>("hFillEventTau","hFillEventTau",2,0,2);
+  hFillEventTotal = fs->make<TH1F>("hFillEventTotal","hFillEventTotal",2,0,2);
+  hFillEventMuon = fs->make<TH1F>("hFillEventMuon","hFillEventMuon",2,0,2);
 	
   //muon histos
   muptdis  = fs->make<TH1F>("muptdis","muptdis",500,0,500);
@@ -607,10 +620,10 @@ MiniAODAnalyzer::beginJob()
   hmuonmatch = fs->make<TH1F>("hmuonmatch","hmuonmatch",2,0,2);
 
   //jet histos
-  jetptdis  = fs->make<TH1F>("jetptdis","jetptdis",500,0,500);
+  /*  jetptdis  = fs->make<TH1F>("jetptdis","jetptdis",500,0,500);
   jetetadis  = fs->make<TH1F>("jetetadis","jetetadis",20,-5,5);
   jetphidis  = fs->make<TH1F>("jetphidis","jetphidis",20,-3.5,3.5);
-  jetenergydis  = fs->make<TH1F>("jetenergydis","jetenergydis",500,0,500);
+  jetenergydis  = fs->make<TH1F>("jetenergydis","jetenergydis",500,0,500);*/
   //tau histos
   tauptdis  = fs->make<TH1F>("tauptdis","tauptdis",500,0,500);
   tauetadis  = fs->make<TH1F>("tauetadis","tauetadis",20,-5,5);
@@ -629,23 +642,23 @@ MiniAODAnalyzer::beginJob()
   //trigger effciency calculation Denomminator and Numerator
   hFillPtDen = fs->make<TH1F>("hFillPtDen","hFillPtDen",500,0,500);
   hFillEtaDen = fs->make<TH1F>("hFillEtaDen","hFillEtaDen",100,-5,5);
-  hFillPtNum = fs->make<TH1F>("hFillPtDen","hFillPtDen",500,0,500);
-  hFillEtaNum = fs->make<TH1F>("hFillEtaDen","hFillEtaDen",100,-5,5);
+  hFillPtNum = fs->make<TH1F>("hFillPtNum","hFillPtNum",500,0,500);
+  hFillEtaNum = fs->make<TH1F>("hFillEtaNum","hFillEtaNum",100,-5,5);
 
   //electron histos
-  electronptdis  = fs->make<TH1F>("electronptdis","electronptdis",500,0,500);
+  /*  electronptdis  = fs->make<TH1F>("electronptdis","electronptdis",500,0,500);
   electronetadis  = fs->make<TH1F>("electronetadis","electronetadis",20,-5,5);
   electronphidis  = fs->make<TH1F>("electronphidis","electronphidis",20,-3.5,3.5);
   electronenergydis  = fs->make<TH1F>("electronenergydis","electronenergydis",500,0,500);
-  electronchdis  = fs->make<TH1F>("electronchdis","electronchdis",4,-2,2);
+  electronchdis  = fs->make<TH1F>("electronchdis","electronchdis",4,-2,2);*/
   //MET histos
-  Met_type1PF_pt = fs->make<TH1F>("METptdis","METptdis",500,0,500);
+  /*  Met_type1PF_pt = fs->make<TH1F>("METptdis","METptdis",500,0,500);
   Met_type1PF_px = fs->make<TH1F>("METpt_x_dis","METpt_x_dis",500,0,500);
   Met_type1PF_py = fs->make<TH1F>("METpt_y_dis","METpt_y_dis",500,0,500);
   Met_type1PF_pz = fs->make<TH1F>("METpt_z_dis","METpt_z_dis",500,0,500);
   Met_type1PF_phi = fs->make<TH1F>("METphidis","METphidis",20,-3.5,3.5);
   Met_type1PF_sumEt = fs->make<TH1F>("METenergydis","METenergydis",500,0,500);
-
+  */
   //mas reconstructio and met
   mutaumassdis = fs->make<TH1F>("mutaumassdis","mutaumassdis",500,0,500);
   mtdis = fs->make<TH1F>("mtdis","mtdis",200,0,200);
@@ -957,4 +970,21 @@ pair<bool, TLorentzVector> MiniAODAnalyzer::TauMatchingToTrigObjects(const pat::
   pair<bool, TLorentzVector> mytauobject(ismatched,matchedtriggerObject);        
 
   return mytauobject;
+}
+//---------------------------MC FUNTIONS-----------------------------------------
+bool MiniAODAnalyzer::IsFirstCopy (const reco::Candidate* part, const bool checkAbsPdg)
+{
+	bool isFirst = true;
+	int thisPdgId = part->pdgId();
+	for (unsigned int iMo = 0; iMo < part->numberOfMothers(); iMo++)
+	{
+		const reco::Candidate * Mo = part->mother(iMo);
+		bool pdgMatch = (checkAbsPdg ? (abs(thisPdgId) == abs(Mo->pdgId())) : (thisPdgId == Mo->pdgId()) );
+		if (pdgMatch)
+		{
+			isFirst = false;
+			break;
+		}
+	}
+	return isFirst;
 }
