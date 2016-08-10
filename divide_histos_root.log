@@ -1,0 +1,8 @@
+root -l OutTree_2016B_DATA.root
+root [0]  TFile *f = new TFile("OutTree_2016B_DATA.root");
+root [1]  f->cd("miniAOD");
+root [2] hFillPtNum->Draw();
+root [3] hFillPtDen->Draw();
+root [4] TH1F *hEff = new TH1F("Trigger_Eff", "Trigger_Efficiency", 500, 0, 500);
+root [5] hEff->Divide(hFillPtNum, hFillPtDen, 1, 1, "b");
+root [6]  hEff->Draw();
