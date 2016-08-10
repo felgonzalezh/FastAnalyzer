@@ -2,3 +2,4 @@
 *.pyc
 *.root
 MiniAODAnalyzer/python/crab_projects/
+MiniAODAnalyzer/trigger_names.log
