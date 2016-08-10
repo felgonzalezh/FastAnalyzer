@@ -28,20 +28,14 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_Prompt_v8', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
        # 'root://cms-xrd-global.cern.ch///store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root'
-        '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root'
-#       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/02D9C19F-571A-E611-AD8E-02163E013732.root',
-#       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/18383F36-2E1A-E611-8C57-02163E014186.root',
-#       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/1AF0711C-241A-E611-AC07-02163E0141E1.root',
-#       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/2096A6AC-261A-E611-99BD-02163E01355E.root'
-
-#        '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root',
- #       '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/158/00000/02D9C19F-571A-E611-AD8E-02163E013732.root'
+        '/store/mc/RunIISpring16MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/50000/000FF6AC-9F2A-E611-A063-0CC47A4C8EB0.root' # DY MC
+#        '/store/data/Run2016B/SingleMuon/MINIAOD/PromptReco-v2/000/273/150/00000/34A57FB8-D819-E611-B0A4-02163E0144EE.root' # 2016B DATA
     )
 )
 
@@ -76,7 +70,7 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  HLTFilter2b = cms.string( "hltOverlapFilterIsoMu19L2IsoTau26"),#hltOverlapFilterIsoMu17MediumIsoPFTau40Reg" ),
 
                                  # samples input tag
-                                 isMC = cms.bool(False),
+                                 isMC = cms.bool(True),
                                  isZtau  = cms.bool(True),
                                  isZprime  = cms.bool(False),
                                  GenReq = cms.bool(False),
@@ -95,6 +89,10 @@ process.miniAOD = cms.EDAnalyzer('MiniAODAnalyzer',
                                  triggerObjects             = cms.InputTag("selectedPatTrigger"),			  
                                  l1min = cms.InputTag("patTrigger","l1min"),
                                  l1max = cms.InputTag("patTrigger","l1max"),           
+                                 
+                                 #MC
+                                 genparts= cms.InputTag("prunedGenParticles"),
+                                 genweights= cms.InputTag("generator"),
                                  
                                  #Cut values
                                  isOSCharge = cms.bool(True),     

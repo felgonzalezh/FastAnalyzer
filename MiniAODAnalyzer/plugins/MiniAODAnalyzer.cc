@@ -145,6 +145,10 @@ private:
   edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescalesL1min_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> trigger_objects;
 
+  //MC
+  edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
+  edm::EDGetTokenT<reco::GenParticleCollection> genToken_;
+
   //Trigger Paths
   string HLTPath1, HLTFilter1a, HLTFilter1b;
   string HLTPath2, HLTFilter2a,HLTFilter2b,HLTFilter2c,HLTFilter2d;   
@@ -158,22 +162,17 @@ private:
   bool isMC, isZtau, isZprime, GenReq ;double weightevt, sumweight, DYOthersBG;
   //Gen Particles
   unsigned int indexmuTau , indexTauh;
+  TH1F *hNumberOfMuons, *hNumberOftaus;
   
-
   //Total Events
   TH1F *hFillEventTotal, *hFillEventMuon, *hFillEventTau;
   // Muon histos;
   TH1F *muptdis,*muetadis,*muphidis,*muenergydis,*muchdis,*hmuonid, *hmuoniso;
-  //Jet histos
-  //  TH1F *jetptdis,*jetetadis,*jetphidis,*jetenergydis;
-  //Tau histos
+    //Tau histos
   TH1F *tauptdis,*tauetadis,*tauphidis,*tauenergydis,*tauchdis,*htauid,*hFillPtDen,*hFillEtaDen,*hFillPtNum,*hFillEtaNum;
   TH2F *h2D_den,*h2D_num;
   //Electron histos
   bool iselectron;
-  //  TH1F *electronptdis,*electronetadis,*electronphidis,*electronenergydis,*electronchdis;
-  //MET
-  //  TH1F *Met_type1PF_pt,*Met_type1PF_px, *Met_type1PF_py,*Met_type1PF_pz,*Met_type1PF_phi,*Met_type1PF_sumEt; 
   //mas reconstruction and met
   TH1F *mutaumassdis, *mtdis;
   //vut histos
@@ -206,6 +205,11 @@ private:
 
   //MC Functions
   bool IsFirstCopy (const reco::Candidate* part, const bool checkAbsPdg); 
+  const reco::Candidate* GetLastCopy (const reco::Candidate* part);
+  int GetTauDecay (const reco::Candidate* part);
+  int GetTauDecay (const reco::GenParticle& part);
+  const reco::Candidate* GetFirstCopy (const reco::Candidate* part);
+  reco::GenParticle GetTauHad (const reco::Candidate* part);
 
 
   TTree *myTree;
@@ -260,6 +264,10 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
   triggerPrescalesL1max_ = consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("l1max"));
   triggerPrescalesL1min_ = consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("l1min"));
 
+  //MC
+  generatorToken_  = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genweights"));
+  genToken_        = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparts"));
+
   //Trigger Paths
   HLTPath1 = iConfig.getParameter<string>("HLTPath1");
   HLTFilter1a = iConfig.getParameter<string>("HLTFilter1a");
@@ -267,6 +275,8 @@ MiniAODAnalyzer::MiniAODAnalyzer(const edm::ParameterSet& iConfig)
   HLTPath2 = iConfig.getParameter<string>("HLTPath2");
   HLTFilter2a = iConfig.getParameter<string>("HLTFilter2a");
   HLTFilter2b = iConfig.getParameter<string>("HLTFilter2b");
+  
+
   
   //cut values
   TauPtCut = iConfig.getParameter<double>("TauPtCut");
@@ -327,14 +337,6 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   edm::Handle<pat::METCollection> mets;
   iEvent.getByToken(metToken_, mets);
   const pat::MET &Met = mets->front();
-  /*
-    Met_type1PF_pt->Fill(met.pt());
-    Met_type1PF_px->Fill(met.px());
-    Met_type1PF_py->Fill(met.py());
-    Met_type1PF_pz->Fill(met.pz());
-    Met_type1PF_phi->Fill(met.phi());
-    Met_type1PF_sumEt->Fill(met.sumEt());  
-  */
 
   //Electron Vetos
   edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
@@ -361,6 +363,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   iEvent.getByToken(trigger_objects, triggerObjects);   
 
   // Vertex
+
   reco::VertexCollection::const_iterator firstGoodVertex = vertices->end();
   for (reco::VertexCollection::const_iterator it = vertices->begin(); it != firstGoodVertex; it++)
     {
@@ -368,30 +371,40 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       firstGoodVertex = it;
       break;
     }
-
-
   // require a good vertex 
   if (firstGoodVertex == vertices->end()) return;
-  /*
+
+  //Testing
   //MC Samples
+
   if(isMC) {
     
     hFillEventTotal->Fill(1);
     //////////////////////////////////////// weights ///////////////////////////////
+
+    //Generator
     edm::Handle<GenEventInfoProduct> genEvt;
-    iEvent.getByLabel("generator",genEvt);
+    iEvent.getByToken(generatorToken_,genEvt);
+
+    /*  edm::Handle<edm::View<reco::GenParticle> > pruned;  
+    iEvent.getByLabel("prunedGenParticles",pruned); 
+    */
     weightevt=genEvt->weight();
     sumweight = sumweight+weightevt;
     //		cout<<"weightevt"<<weightevt<<endl;
-    edm::Handle<edm::View<reco::GenParticle> > pruned;  
-    iEvent.getByLabel("prunedGenParticles",pruned); 
+
+
+    Handle< reco::GenParticleCollection > pruned;
+    iEvent.getByToken(genToken_, pruned);
     unsigned int Ngen = pruned->size();
     indexmuTau = indexTauh = 0;
+
     int muhad;
     muhad=0;
+
     //GenParticles loop
     for (unsigned int iGen = 0; iGen < Ngen; iGen++){
-      
+
       const GenParticle& genP = (*pruned)[iGen];
       //			std::cout<<"genP" << genP.pt()<<std::endl;
       //muon selection
@@ -405,15 +418,46 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	      muhad++;                
 	      genmuinfo.SetPtEtaPhiM(genP.pt(),genP.eta(),genP.phi(),genP.mass());
 	    }
-	  }// else {
-			
+	  }else {
+	    const reco::Candidate *Moth1 = GetFirstCopy(Moth);
+	    if(fabs(Moth1->pdgId()) == 15) {
+	      if(fabs(Moth1->mother(0)->pdgId()) == MotherpdgID){
+		muhad++;		
+		genmuinfo.SetPtEtaPhiM(genP.pt(),genP.eta(),genP.phi(),genP.mass());
+	      }
+	    }
+	  }
 	}// muon from tau
       }// muon selection
     }// Genparticle loop
+    hNumberOfMuons->Fill(muhad);  
+
+    int itauh=0;
+    for (unsigned int iGen = 0; iGen < Ngen; iGen++)
+      {
+	const GenParticle& genP = (*pruned)[iGen];
+	if(fabs(genP.pdgId()) == 15) {
+	  const reco::Candidate* genp = &genP;
+	  const reco::Candidate *Moth1 = GetFirstCopy(genp);
+	  if(fabs(Moth1->mother(0)->pdgId()) == MotherpdgID) {
+	    int decay = GetTauDecay (GetLastCopy(genp));
+	    if(decay==2) {
+	      const  GenParticle& Tauh = GetTauHad (genp);
+	      itauh++;
+	      gentauinfo.SetPtEtaPhiM(Tauh.pt(),Tauh.eta(),Tauh.phi(),Tauh.mass());
+	      
+	    }
+	  }
+	}
+      }
+    hNumberOftaus->Fill(itauh);
+    hFillEventMuon->Fill(1);
+    if(GenReq) {if(!((muhad == 1) && (itauh == 1))) return;}
+    if(DYOthersBG) {if((muhad == 1) && (itauh == 1)) return;} 
   }// MC Samples
-  */
-  //Testing
-		
+
+
+
   //Trigger Information
   bool trigfired = false;
   //  std::cout << "\n === TRIGGER PATHS === " << std::endl;
@@ -426,8 +470,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      return;
   } 
 
-  hFillEventTotal->Fill(1);
-
+  //  hFillEventTotal->Fill(1);
 
 
   // NOW TRIGGER LEVEL INFORMATION
@@ -435,8 +478,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   matchedTrigger1 = false;
   matchedTrigger2 = false;
 
-  weightevt=1;
-   
+  if(!(isMC)) weightevt = 1;
   int muonid = 0;
   int muoniso = 0;
   int tauid = 0;
@@ -449,7 +491,6 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
   // muon loop
   for (pat::MuonCollection::const_iterator myMuon = muons->begin(); myMuon != muons->end(); ++myMuon) {
-    hFillEventMuon ->Fill(1);
     if((MuSelection( *myMuon, *firstGoodVertex ))){
       muonid++;
       muoniso++;
@@ -576,6 +617,7 @@ MiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   if(muonmatch >= 1) hmuonmatch->Fill(1);
   if(taumatch1 >= 1) htaumatch1->Fill(1);
   if(taumatch2 >= 1) htaumatch2->Fill(1);
+
   /*
 
     #ifdef THIS_IS_AN_EVENT_EXAMPLE
@@ -619,11 +661,6 @@ MiniAODAnalyzer::beginJob()
   hmuoniso = fs->make<TH1F>("hmuoniso","hmuoniso",2,0,2);
   hmuonmatch = fs->make<TH1F>("hmuonmatch","hmuonmatch",2,0,2);
 
-  //jet histos
-  /*  jetptdis  = fs->make<TH1F>("jetptdis","jetptdis",500,0,500);
-  jetetadis  = fs->make<TH1F>("jetetadis","jetetadis",20,-5,5);
-  jetphidis  = fs->make<TH1F>("jetphidis","jetphidis",20,-3.5,3.5);
-  jetenergydis  = fs->make<TH1F>("jetenergydis","jetenergydis",500,0,500);*/
   //tau histos
   tauptdis  = fs->make<TH1F>("tauptdis","tauptdis",500,0,500);
   tauetadis  = fs->make<TH1F>("tauetadis","tauetadis",20,-5,5);
@@ -644,21 +681,11 @@ MiniAODAnalyzer::beginJob()
   hFillEtaDen = fs->make<TH1F>("hFillEtaDen","hFillEtaDen",100,-5,5);
   hFillPtNum = fs->make<TH1F>("hFillPtNum","hFillPtNum",500,0,500);
   hFillEtaNum = fs->make<TH1F>("hFillEtaNum","hFillEtaNum",100,-5,5);
+  
+  //MC
+  hNumberOfMuons = fs->make<TH1F>("hNumberOfMuons","hNumberOfMuons",10,0,10);
+  hNumberOftaus = fs->make<TH1F>("hNumberOftaus","hNumberOftaus",10,0,10);
 
-  //electron histos
-  /*  electronptdis  = fs->make<TH1F>("electronptdis","electronptdis",500,0,500);
-  electronetadis  = fs->make<TH1F>("electronetadis","electronetadis",20,-5,5);
-  electronphidis  = fs->make<TH1F>("electronphidis","electronphidis",20,-3.5,3.5);
-  electronenergydis  = fs->make<TH1F>("electronenergydis","electronenergydis",500,0,500);
-  electronchdis  = fs->make<TH1F>("electronchdis","electronchdis",4,-2,2);*/
-  //MET histos
-  /*  Met_type1PF_pt = fs->make<TH1F>("METptdis","METptdis",500,0,500);
-  Met_type1PF_px = fs->make<TH1F>("METpt_x_dis","METpt_x_dis",500,0,500);
-  Met_type1PF_py = fs->make<TH1F>("METpt_y_dis","METpt_y_dis",500,0,500);
-  Met_type1PF_pz = fs->make<TH1F>("METpt_z_dis","METpt_z_dis",500,0,500);
-  Met_type1PF_phi = fs->make<TH1F>("METphidis","METphidis",20,-3.5,3.5);
-  Met_type1PF_sumEt = fs->make<TH1F>("METenergydis","METenergydis",500,0,500);
-  */
   //mas reconstructio and met
   mutaumassdis = fs->make<TH1F>("mutaumassdis","mutaumassdis",500,0,500);
   mtdis = fs->make<TH1F>("mtdis","mtdis",200,0,200);
@@ -987,4 +1014,85 @@ bool MiniAODAnalyzer::IsFirstCopy (const reco::Candidate* part, const bool check
 		}
 	}
 	return isFirst;
+}
+const reco::Candidate* MiniAODAnalyzer::GetLastCopy (const reco::Candidate* part)
+{
+
+	int cloneInd = -1;
+	int id = part->pdgId();
+	for (unsigned int iDau = 0; iDau < part->numberOfDaughters(); iDau++)
+	{
+		const reco::Candidate * Dau = part->daughter( iDau );
+		if (id == Dau->pdgId())
+		{
+			cloneInd = iDau;
+			break;
+		}
+	}
+
+	if (cloneInd == -1) return part;
+	else return (GetLastCopy (part->daughter(cloneInd)));
+
+}
+int MiniAODAnalyzer::GetTauDecay (const reco::Candidate* part)
+{
+	if (abs(part->pdgId()) != 15) return -1; // only on taus
+	int decay = -1;
+	int nele = 0;
+	int nmu = 0;
+	for (unsigned int iDau = 0; iDau < part->numberOfDaughters(); iDau++)
+	{
+		const reco::Candidate * Dau = part->daughter(iDau);
+		int dauId = abs(Dau->pdgId());
+		if (dauId == 11) nele++;
+		if (dauId == 13) nmu++;
+	}
+
+	if (nmu == 1 && nele == 0) decay = 0;
+	if (nmu == 0 && nele == 1) decay = 1;
+	if (nmu == 0 && nele == 0) decay = 2;
+
+	return decay; // -1 if strange things happen
+}
+
+
+int MiniAODAnalyzer::GetTauDecay (const reco::GenParticle& part)
+{
+	const reco::Candidate* p = &part;
+	return MiniAODAnalyzer::GetTauDecay(p);
+}
+
+const reco::Candidate* MiniAODAnalyzer::GetFirstCopy (const reco::Candidate* part)
+{
+	int cloneInd = -1;
+	int id = part->pdgId();
+	for (unsigned int iMot = 0; iMot < part->numberOfMothers(); iMot++)
+	{
+		const reco::Candidate * Mot = part->mother( iMot );
+		if (id == Mot->pdgId())
+		{
+			cloneInd = iMot;
+			break;
+		}
+	}
+
+	if (cloneInd == -1) return part;
+	else return (GetFirstCopy (part->mother(cloneInd)));
+
+}
+reco::GenParticle MiniAODAnalyzer::GetTauHad (const reco::Candidate* part)
+{
+
+	reco::Candidate::LorentzVector p4Had (0,0,0,0);
+	for (unsigned int iDau = 0; iDau < part->numberOfDaughters(); iDau++)
+	{
+		const reco::Candidate * Dau = part->daughter( iDau );
+		int dauId = abs(Dau->pdgId());
+		if (dauId != 12 && dauId != 14 && dauId != 16 && dauId != 11 && dauId != 13) // no neutrinos
+			p4Had += Dau->p4();
+	}
+
+	int sign = part->pdgId() / abs(part->pdgId());
+	reco::GenParticle TauH = reco::GenParticle (part->charge(), p4Had, part->vertex(), sign*66615, part->status(), true);
+	return TauH;
 }
